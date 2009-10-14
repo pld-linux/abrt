@@ -1,0 +1,344 @@
+Summary:	Automatic bug detection and reporting tool
+Name:		abrt
+Version:	0.0.7.2
+Release:	0.1
+License:	GPL v2+
+Group:		Applications/System
+URL:		https://fedorahosted.org/abrt/
+Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
+# Source0-md5:	a822aef023f2e2e018f26901082eccce
+Source1:	%{name}.init
+BuildRequires:	curl-devel
+BuildRequires:	dbus-c++-devel
+BuildRequires:	dbus-devel
+BuildRequires:	desktop-file-utils
+BuildRequires:	file-devel
+BuildRequires:	gettext
+BuildRequires:	gtk2-devel
+BuildRequires:	libnotify-devel
+BuildRequires:	nss-devel
+BuildRequires:	nss-devel
+BuildRequires:	python-devel
+BuildRequires:	rpm-devel >= 4.6
+BuildRequires:	sqlite-devel > 3.0
+BuildRequires:	xmlrpc-c-devel
+Requires:	%{name}-libs = %{version}-%{release}
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%description
+abrt is a tool to help users to detect defects in applications and to
+create a bug report with all informations needed by maintainer to fix
+it. It uses plugin system to extend its functionality.
+
+%package libs
+Summary:	Libraries for abrt
+Group:		Libraries
+
+%description libs
+Libraries for %{name}.
+
+%package devel
+Summary:	Development libraries for abrt
+Group:		Development/Libraries
+Requires:	%{name}-libs = %{version}-%{release}
+
+%description devel
+Development libraries and headers for %{name}.
+
+%package gui
+Summary:	abrt's gui
+Group:		X11/Applications
+Requires:	%{name} = %{version}-%{release}
+Requires:	dbus-python
+Requires:	gnome-python2-gnomevfs
+Requires:	pygtk2-libglade
+Requires:	python-pygtk
+# only if gtk2 version < 2.17
+#Requires: python-sexy
+Provides:	abrt-applet = %{version}-%{release}
+Obsoletes:	abrt-applet < 0.0.5
+Obsoletes:	bug-buddy
+Conflicts:	abrt-applet < 0.0.5
+
+%description gui
+GTK+ wizard for convenient bug reporting.
+
+%package addon-ccpp
+Summary:	%{name}'s C/C++ addon
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	gdb
+
+%description addon-ccpp
+This package contains hook for C/C++ crashed programs and abrt's C/C++
+analyzer plugin.
+
+%package addon-kerneloops
+Summary:	%{name}'s kerneloops addon
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugin-kerneloopsreporter = %{version}-%{release}
+Obsoletes:	abrt-plugin-kerneloops
+Obsoletes:	kerneloops
+
+%description addon-kerneloops
+This package contains plugins for kernel crashes information
+collecting.
+
+%package plugin-kerneloopsreporter
+Summary:	%{name}'s kerneloops reporter plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	curl
+
+%description plugin-kerneloopsreporter
+This package contains reporter plugin, that sends, collected by abrt's
+kerneloops addon, information about kernel crashes to specified
+server, e.g. kerneloops.org.
+
+%package plugin-sqlite3
+Summary:	%{name}'s SQLite3 database plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-sqlite3
+This package contains SQLite3 database plugin. It is used for storing
+the data required for creating a bug report.
+
+%package plugin-logger
+Summary:	%{name}'s logger reporter plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-logger
+The simple reporter plugin, which writes a report to a specified file.
+
+%package plugin-mailx
+Summary:	%{name}'s mailx reporter plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	mailx
+
+%description plugin-mailx
+The simple reporter plugin, which sends a report via mailx to a
+specified email.
+
+%package plugin-runapp
+Summary:	%{name}'s runapp plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-runapp
+Plugin to run external programs.
+
+%package plugin-sosreport
+Summary:	%{name}'s sosreport plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	sos
+
+%description plugin-sosreport
+Plugin to include an sosreport in an abrt report.
+
+%package plugin-bugzilla
+Summary:	%{name}'s bugzilla plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-bugzilla
+Plugin to report bugs into the bugzilla.
+
+%package plugin-filetransfer
+Summary:	%{name}'s File Transfer plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-filetransfer
+Plugin to uploading files to a server.
+
+%package addon-python
+Summary:	%{name}'s addon for catching and analyzing Python exceptions
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description addon-python
+This package contains python hook and python analyzer plugin for
+hadnling uncaught exception in python programs.
+
+%package cli
+Summary:	%{name}'s command line interface
+Group:		X11/Applications
+Requires:	%{name} = %{version}-%{release}
+
+%description cli
+This package contains simple command line client for controling abrt
+daemon over the sockets.
+
+%package desktop
+Summary:	Virtual package to install all necessary packages for usage from desktop environment
+Group:		X11/Applications
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-addon-ccpp = %{version}-%{release}
+Requires:	%{name}-addon-kerneloops = %{version}-%{release}
+Requires:	%{name}-addon-python = %{version}-%{release}
+Requires:	%{name}-gui = %{version}-%{release}
+Requires:	%{name}-plugin-bugzilla = %{version}-%{release}
+Requires:	%{name}-plugin-sqlite3 = %{version}-%{release}
+
+%description desktop
+Virtual package to make easy default instalation on desktop
+environments.
+
+%prep
+%setup -q
+
+%build
+%configure
+sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+%{__make} %{?_smp_mflags}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%{__make} install DESTDIR=$RPM_BUILD_ROOT mandir=%{_mandir}
+%find_lang %{name}
+
+#rm -rf $RPM_BUILD_ROOT/%{_libdir}/lib*.la
+#rm -rf $RPM_BUILD_ROOT/%{_libdir}/%{name}/lib*.la
+# remove all .la and .a files
+find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
+install -d ${RPM_BUILD_ROOT}/%{_initrddir}
+install %SOURCE1 ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
+install -d $RPM_BUILD_ROOT/var/cache/%{name}
+
+desktop-file-install \
+        --dir ${RPM_BUILD_ROOT}%{_desktopdir} \
+        src/Gui/%{name}.desktop
+
+desktop-file-install \
+        --dir ${RPM_BUILD_ROOT}%{_sysconfdir}/xdg/autostart \
+        src/Applet/%{name}-applet.desktop
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post
+/sbin/chkconfig --add %{name}d
+
+%post libs -p /sbin/ldconfig
+
+%preun
+if [ "$1" -eq "0" ] ; then
+  service %{name}d stop >/dev/null 2>&1
+  /sbin/chkconfig --del %{name}d
+fi
+
+%postun libs -p /sbin/ldconfig
+
+%files -f %{name}.lang
+%defattr(644,root,root,755)
+%doc README COPYING
+%attr(755,root,root) %{_sbindir}/%{name}d
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) /etc/dbus-1/system.d/dbus-%{name}.conf
+%{_initrddir}/%{name}d
+%dir /var/cache/%{name}
+%dir %{_sysconfdir}/%{name}
+%dir %{_sysconfdir}/%{name}/plugins
+%dir %{_libdir}/%{name}
+%{_mandir}/man8/%{name}.8*
+%{_mandir}/man5/%{name}.conf.5*
+%{_mandir}/man7/%{name}-plugins.7*
+
+%files libs
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/lib*.so.*
+
+%files devel
+%defattr(644,root,root,755)
+%{_libdir}/lib*.so
+
+%files gui
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/%{name}-gui
+%{_datadir}/%{name}
+%{_desktopdir}/%{name}.desktop
+%attr(755,root,root) %{_bindir}/%{name}-applet
+%{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
+
+%files addon-ccpp
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
+%attr(755,root,root) %{_libdir}/%{name}/libCCpp.so*
+%{_libexecdir}/hookCCpp
+
+%files addon-kerneloops
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsScanner.conf
+%attr(755,root,root) %{_bindir}/dumpoops
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so*
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsScanner.so*
+%{_mandir}/man7/%{name}-KerneloopsScanner.7*
+
+%files plugin-kerneloopsreporter
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsReporter.conf
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsReporter.so*
+%{_libdir}/%{name}/KerneloopsReporter.GTKBuilder
+%{_mandir}/man7/%{name}-KerneloopsReporter.7*
+
+%files plugin-sqlite3
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
+%attr(755,root,root) %{_libdir}/%{name}/libSQLite3.so*
+%{_mandir}/man7/%{name}-SQLite3.7*
+
+%files plugin-logger
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Logger.conf
+%attr(755,root,root) %{_libdir}/%{name}/libLogger.so*
+%{_libdir}/%{name}/Logger.GTKBuilder
+%{_mandir}/man7/%{name}-Logger.7*
+
+%files plugin-mailx
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Mailx.conf
+%attr(755,root,root) %{_libdir}/%{name}/libMailx.so*
+%{_libdir}/%{name}/Mailx.GTKBuilder
+%{_mandir}/man7/%{name}-Mailx.7*
+
+%files plugin-runapp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libRunApp.so*
+%{_mandir}/man7/%{name}-RunApp.7*
+
+%files plugin-sosreport
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libSOSreport.so*
+
+%files plugin-bugzilla
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
+%attr(755,root,root) %{_libdir}/%{name}/libBugzilla.so*
+%{_libdir}/%{name}/Bugzilla.GTKBuilder
+%{_mandir}/man7/%{name}-Bugzilla.7*
+
+%files plugin-filetransfer
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/FileTransfer.conf
+%attr(755,root,root) %{_libdir}/%{name}/libFileTransfer.so*
+%{_mandir}/man7/%{name}-FileTransfer.7*
+
+%files addon-python
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/pyhook.conf
+%{python_sitearch}/ABRTUtils.so
+%attr(755,root,root) %{_libdir}/%{name}/libPython.so*
+%{python_site}/*.py*
+
+%files cli
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/abrt-cli
+
+%files desktop
+%defattr(644,root,root,755)
