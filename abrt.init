@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Starts the abrt daemon
 #
 # chkconfig: 35 82 16
@@ -17,86 +17,125 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-RETVAL=0
+# Get network config
+. /etc/sysconfig/network
 
-#
-# See how we were called.
-#
+# Get service config - may override defaults
+[ -f /etc/sysconfig/abrtd ] && . /etc/sysconfig/abrtd
 
-check() {
-	# Check that we're a privileged user
-	[ `id -u` = 0 ] || exit 4
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+		msg_network_down "abrt daemon"
+		exit 1
+	fi
+else
+	exit 0
+fi
 
+# configtest itself
+# must return non-zero if check failed
+# output is discarded if checkconfig is ran without details
+configtest() {
 	# Check if abrt is executable
-	test -x /usr/sbin/abrtd || exit 5
+	test -x /usr/sbin/abrtd || return 5
+}
+
+# wrapper for configtest
+checkconfig() {
+	local details=${1:-0}
+
+	if [ $details = 1 ]; then
+		# run config test and display report (status action)
+		show "Checking %s configuration" "abrt daemon"; busy
+		local out
+		out=$(configtest 2>&1)
+		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			ok
+		else
+			fail
+		fi
+		[ "$out" ] && echo >&2 "$out"
+	else
+		# run config test and abort with nice message if failed
+		# (for actions checking status before action).
+		configtest >/dev/null 2>&1
+		RETVAL=$?
+		if [ $RETVAL != 0 ]; then
+			show "Checking %s configuration" "abrt daemon"; fail
+			nls 'Configuration test failed. See details with %s "checkconfig"' $0
+			exit $RETVAL
+		fi
+	fi
 }
 
 start() {
-
-	check
-
-	# Check if it is already running
-	if [ ! -f /var/lock/subsys/abrt ]; then
-		echo -n $"Starting abrt daemon: "
-		daemon /usr/sbin/abrtd
-		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/abrt
-		echo
+	# Check if the service is already running?
+	if [ -f /var/lock/subsys/abrtd ]; then
+		msg_already_running "abrt daemon"
+		return
 	fi
-	return $RETVAL
+
+	checkconfig
+	msg_starting "abrt daemon"
+	daemon /usr/sbin/abrtd
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/abrtd
 }
 
 stop() {
-
-	check
-
-	echo -n $"Stopping abrt daemon: "
-	killproc /usr/sbin/abrtd
-	RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/abrt
-	echo
-	return $RETVAL
-}
-
-
-restart() {
-	stop
-	start
-}
-
-reload() {
-	restart
-}
-
-case "$1" in
-start)
-	start
-	;;
-stop)
-	stop
-	;;
-reload)
-	reload
-	;;
-force-reload)
-	echo "$0: Unimplemented feature."
-	RETVAL=3
-	;;
-restart)
-	restart
-	;;
-condrestart)
-	if [ -f /var/lock/subsys/abrt ]; then
-	    restart
+	if [ ! -f /var/lock/subsys/abrtd ]; then
+		msg_not_running "abrt daemon"
+		return
 	fi
+
+	# Stop daemons.
+	msg_stopping "abrt daemon"
+	killproc abrtd
+	rm -f /var/lock/subsys/abrtd
+}
+
+condrestart() {
+	if [ ! -f /var/lock/subsys/abrtd ]; then
+		msg_not_running "abrt daemon"
+		RETVAL=$1
+		return
+	fi
+
+	checkconfig
+	stop
+	start
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+  	start
 	;;
-status)
-	status abrt
+  stop)
+  	stop
+	;;
+  restart)
+	checkconfig
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
+	;;
+  checkconfig|configtest)
+	checkconfig 1
+	;;
+  status)
+	status abrtd
 	RETVAL=$?
 	;;
-*)
-	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|force-reload}"
-	RETVAL=2
+  *)
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|checkconfig|status}"
+	exit 3
 esac
-
-exit $RETVAL
