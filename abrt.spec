@@ -1,26 +1,32 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	0.0.9
+Version:	1.0.0
 Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
 Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
-# Source0-md5:	2d668c6d53564c05b8266eadff90f2c6
+# Source0-md5:	62a8a6a1d7712472133b97b38469683e
 Source1:	%{name}.init
+BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	gettext
 BuildRequires:	gtk+2-devel
+BuildRequires:	intltool
 BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
+BuildRequires:	libtar-devel
+BuildRequires:	libzip-devel
 BuildRequires:	nss-devel
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 BuildRequires:	rpm-devel
 BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel
+BuildRequires:	zlib-devel
+Requires(pre):	/usr/sbin/groupadd
 Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -49,6 +55,7 @@ Summary:	abrt's gui
 Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
 Requires:	dbus-python
+Requires:	gnome-python2-gnomekeyring
 Requires:	gnome-python2-gnomevfs
 Requires:	pygtk2-libglade
 Requires:	python-pygtk
@@ -68,11 +75,24 @@ GTK+ wizard for convenient bug reporting.
 Summary:	%{name}'s C/C++ addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	gdb
+Requires:	elfutils
+Requires:	gdb >= 7.0-3
+Requires:	yum-utils
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and abrt's C/C++
 analyzer plugin.
+
+%package plugin-firefox
+Summary:	%{name}'s Firefox analyzer plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	elfutils
+Requires:	gdb >= 7.0-3
+Requires:	yum-utils
+
+%description plugin-firefox
+This package contains hook for Firefox
 
 %package addon-kerneloops
 Summary:	%{name}'s kerneloops addon
@@ -149,6 +169,14 @@ Requires:	%{name} = %{version}-%{release}
 %description plugin-bugzilla
 Plugin to report bugs into the bugzilla.
 
+%package plugin-catcut
+Summary:	%{name}'s catcut plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-catcut
+Plugin to report bugs into the catcut.
+
 %package plugin-ticketuploader
 Summary:	%{name}'s ticketuploader plugin
 Group:		Libraries
@@ -191,8 +219,9 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
-Requires:	%{name}-gui = %{version}-%{release}
 Requires:	%{name}-plugin-bugzilla = %{version}-%{release}
+#Requires:	%{name}-plugin-firefox = %{version}-%{release}
+Requires:	%{name}-plugin-logger = %{version}-%{release}
 Requires:	%{name}-plugin-sqlite3 = %{version}-%{release}
 
 %description desktop
@@ -221,10 +250,14 @@ find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
 install -d ${RPM_BUILD_ROOT}/%{_initrddir}
 install %{SOURCE1} ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
 install -d $RPM_BUILD_ROOT/var/cache/%{name}
+install -d $RPM_BUILD_ROOT/var/cache/%{name}-di
+install -d $RPM_BUILD_ROOT/var/run/%{name}
 
 desktop-file-install \
-        --dir ${RPM_BUILD_ROOT}%{_desktopdir} \
-        src/Gui/%{name}.desktop
+        --dir $RPM_BUILD_ROOT%{_desktopdir} \
+        --vendor fedora \
+        --delete-original \
+        $RPM_BUILD_ROOT%{_desktopdir}/%{name}.desktop
 
 desktop-file-install \
         --dir ${RPM_BUILD_ROOT}%{_sysconfdir}/xdg/autostart \
@@ -233,8 +266,12 @@ desktop-file-install \
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+/usr/sbin/groupadd -f --system abrt
+
 %post
 /sbin/chkconfig --add abrtd
+%service abortd restart
 
 %preun
 if [ "$1" = "0" ]; then
@@ -249,16 +286,23 @@ fi
 %defattr(644,root,root,755)
 %doc README COPYING
 %attr(755,root,root) %{_sbindir}/%{name}d
+%attr(755,root,root) %{_bindir}/%{name}-debuginfo-install
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) /etc/dbus-1/system.d/dbus-%{name}.conf
 %{_initrddir}/%{name}d
 %dir /var/cache/%{name}
+%dir %attr(775, root, abrt) /var/cache/%{name}
+%dir /var/cache/%{name}-di
+%dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
 %dir %{_libdir}/%{name}
-%{_mandir}/man8/%{name}.8*
+%{_mandir}/man8/abrtd.8*
 %{_mandir}/man5/%{name}.conf.5*
 %{_mandir}/man7/%{name}-plugins.7*
+%{_mandir}/man5/pyhook.conf.5*
+%{_datadir}/polkit-1/actions/org.fedoraproject.abrt.policy
+%{_datadir}/dbus-1/system-services/com.redhat.abrt.service
 
 %files libs
 %defattr(644,root,root,755)
@@ -272,7 +316,9 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/%{name}-gui
 %{_datadir}/%{name}
-%{_desktopdir}/%{name}.desktop
++%{_desktopdir}/%{name}.desktop
++%{_pixmapsdir}/abrt.png
++%{_iconsdir}/hicolor/48x48/apps/*.png
 %attr(755,root,root) %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
@@ -282,8 +328,12 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libCCpp.so*
 %{_libexecdir}/hookCCpp
 
+#%files plugin-firefox
+#%{_libdir}/%{name}/libFirefox.so*
+
 %files addon-kerneloops
 %defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsScanner.conf
 %attr(755,root,root) %{_bindir}/dumpoops
 %attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so*
@@ -333,6 +383,13 @@ fi
 %{_libdir}/%{name}/Bugzilla.GTKBuilder
 %{_mandir}/man7/%{name}-Bugzilla.7*
 
+%files plugin-catcut
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
+%attr(755,root,root) %{_libdir}/%{name}/libCatcut.so*
+%{_libdir}/%{name}/Catcut.GTKBuilder
+%{_mandir}/man7/%{name}-Catcut.7*
+
 %files plugin-ticketuploader
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
@@ -348,14 +405,17 @@ fi
 
 %files addon-python
 %defattr(644,root,root,755)
+%attr(2755, root, abrt) %{_bindir}/%{name}-pyhook-helper
 %config(noreplace) %{_sysconfdir}/%{name}/pyhook.conf
-%{python_sitearch}/ABRTUtils.so
+#%{python_sitearch}/ABRTUtils.so
 %attr(755,root,root) %{_libdir}/%{name}/libPython.so*
 %{python_site}/*.py*
 
 %files cli
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-cli
+%{_mandir}/man1/abrt-cli.1*
+%{_sysconfdir}/bash_completion.d/abrt-cli.bash
 
 %files desktop
 %defattr(644,root,root,755)
