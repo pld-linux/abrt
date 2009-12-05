@@ -22,9 +22,9 @@ BuildRequires:	libzip-devel
 BuildRequires:	nss-devel
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
-BuildRequires:	rpm-devel
+BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	sqlite3-devel
-BuildRequires:	xmlrpc-c-devel
+BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
 BuildRequires:	zlib-devel
 Requires(pre):	/usr/sbin/groupadd
 Requires:	%{name}-libs = %{version}-%{release}
