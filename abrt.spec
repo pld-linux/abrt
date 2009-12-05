@@ -1,26 +1,25 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	0.0.7.2
+Version:	0.0.9
 Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
 Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
-# Source0-md5:	a822aef023f2e2e018f26901082eccce
+# Source0-md5:	2d668c6d53564c05b8266eadff90f2c6
 Source1:	%{name}.init
 BuildRequires:	curl-devel
-BuildRequires:	dbus-c++-devel
 BuildRequires:	dbus-devel
 BuildRequires:	desktop-file-utils
-BuildRequires:	file-devel
 BuildRequires:	gettext
-BuildRequires:	gtk2-devel
+BuildRequires:	gtk+2-devel
+BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
 BuildRequires:	nss-devel
-BuildRequires:	nss-devel
+BuildRequires:	polkit-devel
 BuildRequires:	python-devel
-BuildRequires:	rpm-devel >= 4.6
-BuildRequires:	sqlite-devel > 3.0
+BuildRequires:	rpm-devel
+BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel
 Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -56,7 +55,9 @@ Requires:	python-pygtk
 # only if gtk2 version < 2.17
 #Requires: python-sexy
 Provides:	abrt-applet = %{version}-%{release}
+Provides:	bug-buddy
 Obsoletes:	abrt-applet < 0.0.5
+Obsoletes:	bug-buddy
 Obsoletes:	bug-buddy
 Conflicts:	abrt-applet < 0.0.5
 
@@ -148,6 +149,15 @@ Requires:	%{name} = %{version}-%{release}
 %description plugin-bugzilla
 Plugin to report bugs into the bugzilla.
 
+%package plugin-ticketuploader
+Summary:	%{name}'s ticketuploader plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-ticketuploader
+Plugin to report bugs into anonymous FTP site associated with
+ticketing system.
+
 %package plugin-filetransfer
 Summary:	%{name}'s File Transfer plugin
 Group:		Libraries
@@ -191,24 +201,25 @@ environments.
 
 %prep
 %setup -q
+#sed -i -e /PKG_CHECK_MODULES.*RPM/s,^,dnl, configure.ac
 
 %build
 %configure
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
-%{__make} %{?_smp_mflags}
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%{__make} install DESTDIR=$RPM_BUILD_ROOT mandir=%{_mandir}
+%{__make} install \
+	mandir=%{_mandir} \
+	DESTDIR=$RPM_BUILD_ROOT
 %find_lang %{name}
 
-#rm -rf $RPM_BUILD_ROOT/%{_libdir}/lib*.la
-#rm -rf $RPM_BUILD_ROOT/%{_libdir}/%{name}/lib*.la
 # remove all .la and .a files
 find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
 install -d ${RPM_BUILD_ROOT}/%{_initrddir}
-install %SOURCE1 ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
+install %{SOURCE1} ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
 install -d $RPM_BUILD_ROOT/var/cache/%{name}
 
 desktop-file-install \
@@ -223,16 +234,15 @@ desktop-file-install \
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/chkconfig --add %{name}d
-
-%post libs -p /sbin/ldconfig
+/sbin/chkconfig --add abrtd
 
 %preun
-if [ "$1" -eq "0" ] ; then
-  service %{name}d stop >/dev/null 2>&1
-  /sbin/chkconfig --del %{name}d
+if [ "$1" = "0" ]; then
+	%service abrtd stop
+	/sbin/chkconfig --del abrtd
 fi
 
+%post	libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
 %files -f %{name}.lang
@@ -322,6 +332,13 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libBugzilla.so*
 %{_libdir}/%{name}/Bugzilla.GTKBuilder
 %{_mandir}/man7/%{name}-Bugzilla.7*
+
+%files plugin-ticketuploader
+%defattr(644,root,root,755)
+%config(noreplace) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
+%attr(755,root,root) %{_libdir}/%{name}/libTicketUploader.so*
+%{_libdir}/%{name}/TicketUploader.GTKBuilder
+%{_mandir}/man7/%{name}-TicketUploader.7*
 
 %files plugin-filetransfer
 %defattr(644,root,root,755)
