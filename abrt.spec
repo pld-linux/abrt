@@ -30,7 +30,6 @@ BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
 BuildRequires:	zlib-devel
-Requires(postun):	/sbin/ldconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
@@ -256,22 +255,17 @@ rm -rf $RPM_BUILD_ROOT
 
 %py_postclean
 
-# remove all .la and .a files
-find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
+# remove all .la files
+rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/lib*.la %{_libdir}/lib*.la
+
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/abrtd
 install -d $RPM_BUILD_ROOT/var/cache/%{name}
 install -d $RPM_BUILD_ROOT/var/cache/%{name}-di
 install -d $RPM_BUILD_ROOT/var/run/%{name}
 
-desktop-file-install \
-        --dir $RPM_BUILD_ROOT%{_desktopdir} \
-        --delete-original \
-        $RPM_BUILD_ROOT%{_desktopdir}/%{name}.desktop
-
-desktop-file-install \
-        --dir $RPM_BUILD_ROOT%{_sysconfdir}/xdg/autostart \
-        src/Applet/%{name}-applet.desktop
+cp -a src/Gui/abrt.desktop $RPM_BUILD_ROOT%{_desktopdir}/%{name}.desktop
+cp -a src/Applet/%{name}-applet.desktop $RPM_BUILD_ROOT%{_sysconfdir}/xdg/autostart
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -281,7 +275,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add abrtd
-%service abortd restart
+%service abrtd restart
 
 %preun
 if [ "$1" = "0" ]; then
@@ -289,21 +283,21 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del abrtd
 fi
 
-%post	libs -p /sbin/ldconfig
-
 %postun
-/sbin/ldconfig
 if [ "$1" = "0" ]; then
 	%groupremove abrt
 fi
 
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
+
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc README COPYING
+%doc README
 %attr(755,root,root) %{_sbindir}/abrtd
 %attr(755,root,root) %{_bindir}/%{name}-debuginfo-install
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
-%config(noreplace) /etc/dbus-1/system.d/dbus-%{name}.conf
+/etc/dbus-1/system.d/dbus-%{name}.conf
 %attr(754,root,root) /etc/rc.d/init.d/abrtd
 %dir %attr(775,root,abrt) /var/cache/%{name}
 %dir /var/cache/%{name}-di
