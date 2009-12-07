@@ -1,3 +1,5 @@
+# TODO
+# - fixes to get working with jbj rpm
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	1.0.0
@@ -8,6 +10,7 @@ URL:		https://fedorahosted.org/abrt/
 Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
 # Source0-md5:	62a8a6a1d7712472133b97b38469683e
 Source1:	%{name}.init
+Patch0:		%{name}-rpm.patch
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
@@ -23,11 +26,16 @@ BuildRequires:	nss-devel
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 BuildRequires:	rpm-devel >= 4.5-28
+BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
 BuildRequires:	zlib-devel
+Requires(postun):	/sbin/ldconfig
+Requires(postun):	/usr/sbin/groupdel
+Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires:	%{name}-libs = %{version}-%{release}
+Provides:	group(abrt)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -72,7 +80,7 @@ Conflicts:	abrt-applet < 0.0.5
 GTK+ wizard for convenient bug reporting.
 
 %package addon-ccpp
-Summary:	%{name}'s C/C++ addon
+Summary:	abrt's C/C++ addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
@@ -84,7 +92,7 @@ This package contains hook for C/C++ crashed programs and abrt's C/C++
 analyzer plugin.
 
 %package plugin-firefox
-Summary:	%{name}'s Firefox analyzer plugin
+Summary:	abrt's Firefox analyzer plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
@@ -95,7 +103,7 @@ Requires:	yum-utils
 This package contains hook for Firefox
 
 %package addon-kerneloops
-Summary:	%{name}'s kerneloops addon
+Summary:	abrt's kerneloops addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugin-kerneloopsreporter = %{version}-%{release}
@@ -107,7 +115,7 @@ This package contains plugins for kernel crashes information
 collecting.
 
 %package plugin-kerneloopsreporter
-Summary:	%{name}'s kerneloops reporter plugin
+Summary:	abrt's kerneloops reporter plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	curl
@@ -118,7 +126,7 @@ kerneloops addon, information about kernel crashes to specified
 server, e.g. kerneloops.org.
 
 %package plugin-sqlite3
-Summary:	%{name}'s SQLite3 database plugin
+Summary:	abrt's SQLite3 database plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -127,7 +135,7 @@ This package contains SQLite3 database plugin. It is used for storing
 the data required for creating a bug report.
 
 %package plugin-logger
-Summary:	%{name}'s logger reporter plugin
+Summary:	abrt's logger reporter plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -135,7 +143,7 @@ Requires:	%{name} = %{version}-%{release}
 The simple reporter plugin, which writes a report to a specified file.
 
 %package plugin-mailx
-Summary:	%{name}'s mailx reporter plugin
+Summary:	abrt's mailx reporter plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	mailx
@@ -145,7 +153,7 @@ The simple reporter plugin, which sends a report via mailx to a
 specified email.
 
 %package plugin-runapp
-Summary:	%{name}'s runapp plugin
+Summary:	abrt's runapp plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -153,7 +161,7 @@ Requires:	%{name} = %{version}-%{release}
 Plugin to run external programs.
 
 %package plugin-sosreport
-Summary:	%{name}'s sosreport plugin
+Summary:	abrt's sosreport plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	sos
@@ -162,7 +170,7 @@ Requires:	sos
 Plugin to include an sosreport in an abrt report.
 
 %package plugin-bugzilla
-Summary:	%{name}'s bugzilla plugin
+Summary:	abrt's bugzilla plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -170,7 +178,7 @@ Requires:	%{name} = %{version}-%{release}
 Plugin to report bugs into the bugzilla.
 
 %package plugin-catcut
-Summary:	%{name}'s catcut plugin
+Summary:	abrt's catcut plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -178,7 +186,7 @@ Requires:	%{name} = %{version}-%{release}
 Plugin to report bugs into the catcut.
 
 %package plugin-ticketuploader
-Summary:	%{name}'s ticketuploader plugin
+Summary:	abrt's ticketuploader plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -187,7 +195,7 @@ Plugin to report bugs into anonymous FTP site associated with
 ticketing system.
 
 %package plugin-filetransfer
-Summary:	%{name}'s File Transfer plugin
+Summary:	abrt's File Transfer plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -195,7 +203,7 @@ Requires:	%{name} = %{version}-%{release}
 Plugin to uploading files to a server.
 
 %package addon-python
-Summary:	%{name}'s addon for catching and analyzing Python exceptions
+Summary:	abrt's addon for catching and analyzing Python exceptions
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -204,7 +212,7 @@ This package contains python hook and python analyzer plugin for
 hadnling uncaught exception in python programs.
 
 %package cli
-Summary:	%{name}'s command line interface
+Summary:	abrt's command line interface
 Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
 
@@ -230,7 +238,7 @@ environments.
 
 %prep
 %setup -q
-#sed -i -e /PKG_CHECK_MODULES.*RPM/s,^,dnl, configure.ac
+%patch0 -p1
 
 %build
 %configure
@@ -243,31 +251,33 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	mandir=%{_mandir} \
 	DESTDIR=$RPM_BUILD_ROOT
+
 %find_lang %{name}
+
+%py_postclean
 
 # remove all .la and .a files
 find $RPM_BUILD_ROOT -name '*.la' -or -name '*.a' | xargs rm -f
-install -d ${RPM_BUILD_ROOT}/%{_initrddir}
-install %{SOURCE1} ${RPM_BUILD_ROOT}/%{_initrddir}/abrtd
+install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
+install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/abrtd
 install -d $RPM_BUILD_ROOT/var/cache/%{name}
 install -d $RPM_BUILD_ROOT/var/cache/%{name}-di
 install -d $RPM_BUILD_ROOT/var/run/%{name}
 
 desktop-file-install \
         --dir $RPM_BUILD_ROOT%{_desktopdir} \
-        --vendor fedora \
         --delete-original \
         $RPM_BUILD_ROOT%{_desktopdir}/%{name}.desktop
 
 desktop-file-install \
-        --dir ${RPM_BUILD_ROOT}%{_sysconfdir}/xdg/autostart \
+        --dir $RPM_BUILD_ROOT%{_sysconfdir}/xdg/autostart \
         src/Applet/%{name}-applet.desktop
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-/usr/sbin/groupadd -f --system abrt
+%groupadd -g 182 abrt
 
 %post
 /sbin/chkconfig --add abrtd
@@ -280,18 +290,22 @@ if [ "$1" = "0" ]; then
 fi
 
 %post	libs -p /sbin/ldconfig
-%postun libs -p /sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+if [ "$1" = "0" ]; then
+	%groupremove abrt
+fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README COPYING
-%attr(755,root,root) %{_sbindir}/%{name}d
+%attr(755,root,root) %{_sbindir}/abrtd
 %attr(755,root,root) %{_bindir}/%{name}-debuginfo-install
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) /etc/dbus-1/system.d/dbus-%{name}.conf
-%{_initrddir}/%{name}d
-%dir /var/cache/%{name}
-%dir %attr(775, root, abrt) /var/cache/%{name}
+%attr(754,root,root) /etc/rc.d/init.d/abrtd
+%dir %attr(775,root,abrt) /var/cache/%{name}
 %dir /var/cache/%{name}-di
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
@@ -316,9 +330,9 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/%{name}-gui
 %{_datadir}/%{name}
-+%{_desktopdir}/%{name}.desktop
-+%{_pixmapsdir}/abrt.png
-+%{_iconsdir}/hicolor/48x48/apps/*.png
+%{_desktopdir}/%{name}.desktop
+%{_pixmapsdir}/abrt.png
+%{_iconsdir}/hicolor/48x48/apps/*.png
 %attr(755,root,root) %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
@@ -388,7 +402,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
 %attr(755,root,root) %{_libdir}/%{name}/libCatcut.so*
 %{_libdir}/%{name}/Catcut.GTKBuilder
-%{_mandir}/man7/%{name}-Catcut.7*
+#%{_mandir}/man7/%{name}-Catcut.7*
 
 %files plugin-ticketuploader
 %defattr(644,root,root,755)
@@ -409,7 +423,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/pyhook.conf
 #%{python_sitearch}/ABRTUtils.so
 %attr(755,root,root) %{_libdir}/%{name}/libPython.so*
-%{python_site}/*.py*
+%{py_sitescriptdir}/*.py[co]
 
 %files cli
 %defattr(644,root,root,755)
