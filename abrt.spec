@@ -7,7 +7,8 @@ Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
-Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
+#Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	62a8a6a1d7712472133b97b38469683e
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
