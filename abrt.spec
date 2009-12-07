@@ -83,7 +83,7 @@ Summary:	abrt's C/C++ addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
-Requires:	gdb >= 7.0-3
+Requires:	gdb
 Requires:	yum-utils
 
 %description addon-ccpp
@@ -95,7 +95,7 @@ Summary:	abrt's Firefox analyzer plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
-Requires:	gdb >= 7.0-3
+Requires:	gdb
 Requires:	yum-utils
 
 %description plugin-firefox
@@ -256,7 +256,7 @@ rm -rf $RPM_BUILD_ROOT
 %py_postclean
 
 # remove all .la files
-rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/lib*.la %{_libdir}/lib*.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/lib*.la $RPM_BUILD_ROOT%{_libdir}/lib*.la
 
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/abrtd
