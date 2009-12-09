@@ -84,7 +84,7 @@ Summary:	abrt's C/C++ addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
-Requires:	gdb
+Requires:	gdb >= 7.0-3
 Requires:	yum-utils
 
 %description addon-ccpp
@@ -96,7 +96,7 @@ Summary:	abrt's Firefox analyzer plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
-Requires:	gdb
+Requires:	gdb >= 7.0-3
 Requires:	yum-utils
 
 %description plugin-firefox
