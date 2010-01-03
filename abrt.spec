@@ -3,7 +3,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	1.0.0
-Release:	0.3
+Release:	0.4
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
@@ -62,11 +62,11 @@ Development libraries and headers for %{name}.
 Summary:	abrt's gui
 Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
-Requires:	dbus-python
-Requires:	gnome-python2-gnomekeyring
-Requires:	gnome-python2-gnomevfs
-Requires:	pygtk2-libglade
-Requires:	python-pygtk
+Requires:	python-dbus
+Requires:	python-gnome-desktop-keyring
+Requires:	python-gnome-vfs
+Requires:	python-pygtk-glade
+Requires:	python-pygtk-gtk
 # only if gtk2 version < 2.17
 #Requires: python-sexy
 Provides:	abrt-applet = %{version}-%{release}
@@ -164,7 +164,7 @@ Plugin to run external programs.
 Summary:	abrt's sosreport plugin
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	sos
+Requires:	sosreport
 
 %description plugin-sosreport
 Plugin to include an sosreport in an abrt report.
