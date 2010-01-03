@@ -3,7 +3,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	1.0.0
-Release:	0.1
+Release:	0.3
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
@@ -315,11 +315,12 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/lib*.so.*
+%attr(755,root,root) %{_libdir}/libABRTUtils.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libABRTUtils.so.0
 
 %files devel
 %defattr(644,root,root,755)
-%{_libdir}/lib*.so
+%attr(755,root,root) %{_libdir}/libABRTUtils.so
 
 %files gui
 %defattr(644,root,root,755)
@@ -334,8 +335,8 @@ fi
 %files addon-ccpp
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
-%attr(755,root,root) %{_libdir}/%{name}/libCCpp.so*
-%{_libexecdir}/hookCCpp
+%attr(755,root,root) %{_libdir}/%{name}/libCCpp.so
+%attr(755,root,root) %{_libexecdir}/hookCCpp
 
 #%files plugin-firefox
 #%{_libdir}/%{name}/libFirefox.so*
@@ -345,71 +346,71 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsScanner.conf
 %attr(755,root,root) %{_bindir}/dumpoops
-%attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so*
-%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsScanner.so*
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsScanner.so
 %{_mandir}/man7/%{name}-KerneloopsScanner.7*
 
 %files plugin-kerneloopsreporter
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsReporter.conf
-%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsReporter.so*
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsReporter.so
 %{_libdir}/%{name}/KerneloopsReporter.GTKBuilder
 %{_mandir}/man7/%{name}-KerneloopsReporter.7*
 
 %files plugin-sqlite3
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
-%attr(755,root,root) %{_libdir}/%{name}/libSQLite3.so*
+%attr(755,root,root) %{_libdir}/%{name}/libSQLite3.so
 %{_mandir}/man7/%{name}-SQLite3.7*
 
 %files plugin-logger
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Logger.conf
-%attr(755,root,root) %{_libdir}/%{name}/libLogger.so*
+%attr(755,root,root) %{_libdir}/%{name}/libLogger.so
 %{_libdir}/%{name}/Logger.GTKBuilder
 %{_mandir}/man7/%{name}-Logger.7*
 
 %files plugin-mailx
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Mailx.conf
-%attr(755,root,root) %{_libdir}/%{name}/libMailx.so*
+%attr(755,root,root) %{_libdir}/%{name}/libMailx.so
 %{_libdir}/%{name}/Mailx.GTKBuilder
 %{_mandir}/man7/%{name}-Mailx.7*
 
 %files plugin-runapp
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libRunApp.so*
+%attr(755,root,root) %{_libdir}/%{name}/libRunApp.so
 %{_mandir}/man7/%{name}-RunApp.7*
 
 %files plugin-sosreport
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libSOSreport.so*
+%attr(755,root,root) %{_libdir}/%{name}/libSOSreport.so
 
 %files plugin-bugzilla
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
-%attr(755,root,root) %{_libdir}/%{name}/libBugzilla.so*
+%attr(755,root,root) %{_libdir}/%{name}/libBugzilla.so
 %{_libdir}/%{name}/Bugzilla.GTKBuilder
 %{_mandir}/man7/%{name}-Bugzilla.7*
 
 %files plugin-catcut
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
-%attr(755,root,root) %{_libdir}/%{name}/libCatcut.so*
+%attr(755,root,root) %{_libdir}/%{name}/libCatcut.so
 %{_libdir}/%{name}/Catcut.GTKBuilder
 #%{_mandir}/man7/%{name}-Catcut.7*
 
 %files plugin-ticketuploader
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
-%attr(755,root,root) %{_libdir}/%{name}/libTicketUploader.so*
+%attr(755,root,root) %{_libdir}/%{name}/libTicketUploader.so
 %{_libdir}/%{name}/TicketUploader.GTKBuilder
 %{_mandir}/man7/%{name}-TicketUploader.7*
 
 %files plugin-filetransfer
 %defattr(644,root,root,755)
 %config(noreplace) %{_sysconfdir}/%{name}/plugins/FileTransfer.conf
-%attr(755,root,root) %{_libdir}/%{name}/libFileTransfer.so*
+%attr(755,root,root) %{_libdir}/%{name}/libFileTransfer.so
 %{_mandir}/man7/%{name}-FileTransfer.7*
 
 %files addon-python
@@ -417,14 +418,14 @@ fi
 %attr(2755, root, abrt) %{_bindir}/%{name}-pyhook-helper
 %config(noreplace) %{_sysconfdir}/%{name}/pyhook.conf
 #%{python_sitearch}/ABRTUtils.so
-%attr(755,root,root) %{_libdir}/%{name}/libPython.so*
+%attr(755,root,root) %{_libdir}/%{name}/libPython.so
 %{py_sitescriptdir}/*.py[co]
 
 %files cli
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-cli
 %{_mandir}/man1/abrt-cli.1*
-%{_sysconfdir}/bash_completion.d/abrt-cli.bash
+/etc/bash_completion.d/abrt-cli.bash
 
 %files desktop
 %defattr(644,root,root,755)
