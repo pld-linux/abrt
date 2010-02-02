@@ -1,0 +1,11 @@
+--- abrt-1.0.0/lib/Utils/DebugDump.cpp~	2009-11-22 21:50:18.000000000 +0200
++++ abrt-1.0.0/lib/Utils/DebugDump.cpp	2010-02-03 00:20:43.878642078 +0200
+@@ -315,7 +315,7 @@
+         SaveText(FILENAME_ARCHITECTURE, buf.machine);
+     }
+     std::string release;
+-    LoadTextFile("/etc/redhat-release", release);
++    LoadTextFile("/etc/pld-release", release);
+     const char *release_ptr = release.c_str();
+     unsigned len_1st_str = strchrnul(release_ptr, '\n') - release_ptr;
+     release.erase(len_1st_str); /* usually simply removes trailing '\n' */

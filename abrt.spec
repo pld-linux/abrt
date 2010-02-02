@@ -3,7 +3,7 @@
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
 Version:	1.0.0
-Release:	0.4
+Release:	0.5
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
@@ -12,6 +12,7 @@ Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	62a8a6a1d7712472133b97b38469683e
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
+Patch1:		%{name}-pld.patch
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
@@ -239,6 +240,7 @@ environments.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 %configure
