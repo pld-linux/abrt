@@ -243,15 +243,17 @@ environments.
 %patch1 -p1
 
 %build
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+%{__autoheader}
+%{__automake}
 %configure
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 %{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 %{__make} install \
-	mandir=%{_mandir} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 %find_lang %{name}
