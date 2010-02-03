@@ -13,21 +13,26 @@ Source0:	%{name}-%{version}.tar.gz
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
 Patch1:		%{name}-pld.patch
+BuildRequires:	autoconf
+BuildRequires:	automake
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
-BuildRequires:	desktop-file-utils
-BuildRequires:	gettext
+BuildRequires:	gettext-devel
 BuildRequires:	gtk+2-devel
 BuildRequires:	intltool
 BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
 BuildRequires:	libtar-devel
+BuildRequires:	libtool
 BuildRequires:	libzip-devel
 BuildRequires:	nss-devel
+BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
+BuildRequires:	python-modules
 BuildRequires:	rpm-devel >= 4.5-28
+BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
