@@ -1,11 +1,12 @@
---- abrt-1.0.0/src/Daemon/abrt.conf~	2009-11-22 21:50:18.000000000 +0200
-+++ abrt-1.0.0/src/Daemon/abrt.conf	2010-03-15 00:19:44.286779419 +0200
-@@ -6,7 +6,7 @@
- # only crashes in signed packages will be analyzed.
- OpenGPGCheck = no
- # GPG keys
--OpenGPGPublicKeys = /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora
-+OpenGPGPublicKeys = /etc/pki/rpm-gpg/PLD-3.0-Th-GPG-key.asc
- # Blacklisted packages
- BlackList = nspluginwrapper
- # Enabled plugins. There has to be exactly one database plugin
+--- abrt-1.0.7/src/Daemon/gpg_keys~	2010-02-12 18:31:59.000000000 +0200
++++ abrt-1.0.7/src/Daemon/gpg_keys	2010-03-15 00:30:17.102537684 +0200
+@@ -1,7 +1,2 @@
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta-2
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-auxiliary
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta-2
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-beta
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-former
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-release
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-rhx
++/etc/pki/rpm-gpg/PLD-2.0-Ac-GPG-key.asc
++/etc/pki/rpm-gpg/PLD-3.0-Th-GPG-key.asc

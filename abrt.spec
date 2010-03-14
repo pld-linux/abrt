@@ -2,14 +2,13 @@
 # - fixes to get working with jbj rpm
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	1.0.0
-Release:	0.6
+Version:	1.0.7
+Release:	0.7
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
-#Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
-Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	62a8a6a1d7712472133b97b38469683e
+Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
+# Source0-md5:	edb93af31b1bc7b5653ccbf7bb6b4dce
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
 Patch1:		%{name}-pld.patch
@@ -39,10 +38,15 @@ BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
 BuildRequires:	zlib-devel
 Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
+Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
 Provides:	group(abrt)
+Provides:	user(abrt)
+Obsoletes:	abrt-plugin-sqlite3
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -77,10 +81,7 @@ Requires:	python-pygtk-gtk
 # only if gtk2 version < 2.17
 #Requires: python-sexy
 Provides:	abrt-applet = %{version}-%{release}
-Provides:	bug-buddy
 Obsoletes:	abrt-applet < 0.0.5
-Obsoletes:	bug-buddy
-Obsoletes:	bug-buddy
 Conflicts:	abrt-applet < 0.0.5
 
 %description gui
@@ -91,7 +92,6 @@ Summary:	abrt's C/C++ addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	elfutils
-Requires:	gdb >= 7.0-3
 Requires:	yum-utils
 
 %description addon-ccpp
@@ -113,33 +113,15 @@ This package contains hook for Firefox
 Summary:	abrt's kerneloops addon
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugin-kerneloopsreporter = %{version}-%{release}
+Requires:	curl
 Obsoletes:	abrt-plugin-kerneloops
+Obsoletes:	abrt-plugin-kerneloopsreporter
 Obsoletes:	kerneloops
 
 %description addon-kerneloops
-This package contains plugins for kernel crashes information
-collecting.
-
-%package plugin-kerneloopsreporter
-Summary:	abrt's kerneloops reporter plugin
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	curl
-
-%description plugin-kerneloopsreporter
-This package contains reporter plugin, that sends, collected by abrt's
-kerneloops addon, information about kernel crashes to specified
-server, e.g. kerneloops.org.
-
-%package plugin-sqlite3
-Summary:	abrt's SQLite3 database plugin
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-
-%description plugin-sqlite3
-This package contains SQLite3 database plugin. It is used for storing
-the data required for creating a bug report.
+This package contains plugin for collecting kernel crash information
+and reporter plugin which sends this information to specified server,
+usually to kerneloops.org.
 
 %package plugin-logger
 Summary:	abrt's logger reporter plugin
@@ -147,7 +129,7 @@ Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description plugin-logger
-The simple reporter plugin, which writes a report to a specified file.
+The simple reporter plugin which writes a report to a specified file.
 
 %package plugin-mailx
 Summary:	abrt's mailx reporter plugin
@@ -156,7 +138,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	mailx
 
 %description plugin-mailx
-The simple reporter plugin, which sends a report via mailx to a
+The simple reporter plugin which sends a report via mailx to a
 specified email.
 
 %package plugin-runapp
@@ -216,12 +198,20 @@ Requires:	%{name} = %{version}-%{release}
 
 %description addon-python
 This package contains python hook and python analyzer plugin for
-hadnling uncaught exception in python programs.
+handling uncaught exception in python programs.
 
 %package cli
 Summary:	abrt's command line interface
 Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
+# analyzers
+Requires:	%{name}-addon-ccpp
+Requires:	%{name}-addon-kerneloops
+Requires:	%{name}-addon-python
+# reporters
+Requires:	%{name}-plugin-logger
+Requires:	%{name}-plugin-sosreport
+Requires:	%{name}-plugin-ticketuploader
 
 %description cli
 This package contains simple command line client for controling abrt
@@ -230,17 +220,26 @@ daemon over the sockets.
 %package desktop
 Summary:	Virtual package to install all necessary packages for usage from desktop environment
 Group:		X11/Applications
+# This package gets installed when anything requests bug-buddy -
+# happens when users upgrade Fn to Fn+1;
+# or if user just wants "typical desktop installation".
+# Installing abrt-desktop should result in the abrt which works without
+# any tweaking in abrt.conf (IOW: all plugins mentioned there must be installed)
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
-Requires:	%{name}-plugin-bugzilla = %{version}-%{release}
-#Requires:	%{name}-plugin-firefox = %{version}-%{release}
-Requires:	%{name}-plugin-logger = %{version}-%{release}
-Requires:	%{name}-plugin-sqlite3 = %{version}-%{release}
+# Default config of addon-ccpp requires gdb
+Requires:	%{name}-gui
+Requires:	%{name}-plugin-logger
+Requires:	%{name}-plugin-sosreport
+Requires:	%{name}-plugin-ticketuploader
+Requires:	gdb >= 7.0-3
+Provides:	bug-buddy
+Obsoletes:	bug-buddy
 
 %description desktop
-Virtual package to make easy default instalation on desktop
+Virtual package to make easy default installation on desktop
 environments.
 
 %prep
@@ -283,7 +282,8 @@ cp -a src/Applet/%{name}-applet.desktop $RPM_BUILD_ROOT%{_sysconfdir}/xdg/autost
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-%groupadd -g 182 abrt
+%groupadd -g 248 abrt
+%useradd -u 248 -g abrt -d /etc/abrt -s /sbin/nologin abrt
 
 %post
 /sbin/chkconfig --add abrtd
@@ -297,6 +297,7 @@ fi
 
 %postun
 if [ "$1" = "0" ]; then
+	%userremove abrt
 	%groupremove abrt
 fi
 
@@ -308,30 +309,39 @@ fi
 %doc README
 %attr(755,root,root) %{_sbindir}/abrtd
 %attr(755,root,root) %{_bindir}/%{name}-debuginfo-install
-%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%attr(755,root,root) %{_bindir}/%{name}-backtrace
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/gpg_keys
 /etc/dbus-1/system.d/dbus-%{name}.conf
 %attr(754,root,root) /etc/rc.d/init.d/abrtd
 %dir %attr(775,root,abrt) /var/cache/%{name}
-%dir /var/cache/%{name}-di
 %dir /var/run/%{name}
 %dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/plugins
 %dir %{_libdir}/%{name}
+%{_mandir}/man1/%{name}-backtrace.1*
 %{_mandir}/man8/abrtd.8*
 %{_mandir}/man5/%{name}.conf.5*
 %{_mandir}/man7/%{name}-plugins.7*
-%{_mandir}/man5/pyhook.conf.5*
 %{_datadir}/polkit-1/actions/org.fedoraproject.abrt.policy
 %{_datadir}/dbus-1/system-services/com.redhat.abrt.service
+
+# plugin-sqlite3
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
+%attr(755,root,root) %{_libdir}/%{name}/libSQLite3.so
+%{_mandir}/man7/%{name}-SQLite3.7*
 
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libABRTUtils.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libABRTUtils.so.0
+%attr(755,root,root) %{_libdir}/libABRTdUtils.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libABRTdUtils.so.0
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libABRTUtils.so
+%attr(755,root,root) %{_libdir}/libABRTdUtils.so
 
 %files gui
 %defattr(644,root,root,755)
@@ -345,45 +355,32 @@ fi
 
 %files addon-ccpp
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/CCpp.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %attr(755,root,root) %{_libdir}/%{name}/libCCpp.so
-%attr(755,root,root) %{_libexecdir}/hookCCpp
+%attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
+%dir %{_localstatedir}/cache/%{name}-di
 
 #%files plugin-firefox
 #%{_libdir}/%{name}/libFirefox.so*
 
 %files addon-kerneloops
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsScanner.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Kerneloops.conf
 %attr(755,root,root) %{_bindir}/dumpoops
 %attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so
 %attr(755,root,root) %{_libdir}/%{name}/libKerneloopsScanner.so
 %{_mandir}/man7/%{name}-KerneloopsScanner.7*
 
-%files plugin-kerneloopsreporter
-%defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/KerneloopsReporter.conf
-%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsReporter.so
-%{_libdir}/%{name}/KerneloopsReporter.GTKBuilder
-%{_mandir}/man7/%{name}-KerneloopsReporter.7*
-
-%files plugin-sqlite3
-%defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/SQLite3.conf
-%attr(755,root,root) %{_libdir}/%{name}/libSQLite3.so
-%{_mandir}/man7/%{name}-SQLite3.7*
-
 %files plugin-logger
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Logger.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Logger.conf
 %attr(755,root,root) %{_libdir}/%{name}/libLogger.so
 %{_libdir}/%{name}/Logger.GTKBuilder
 %{_mandir}/man7/%{name}-Logger.7*
 
 %files plugin-mailx
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Mailx.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Mailx.conf
 %attr(755,root,root) %{_libdir}/%{name}/libMailx.so
 %{_libdir}/%{name}/Mailx.GTKBuilder
 %{_mandir}/man7/%{name}-Mailx.7*
@@ -395,40 +392,40 @@ fi
 
 %files plugin-sosreport
 %defattr(644,root,root,755)
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/SOSreport.conf
 %attr(755,root,root) %{_libdir}/%{name}/libSOSreport.so
 
 %files plugin-bugzilla
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Bugzilla.conf
 %attr(755,root,root) %{_libdir}/%{name}/libBugzilla.so
 %{_libdir}/%{name}/Bugzilla.GTKBuilder
 %{_mandir}/man7/%{name}-Bugzilla.7*
 
 %files plugin-catcut
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/Catcut.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Catcut.conf
 %attr(755,root,root) %{_libdir}/%{name}/libCatcut.so
 %{_libdir}/%{name}/Catcut.GTKBuilder
 #%{_mandir}/man7/%{name}-Catcut.7*
 
 %files plugin-ticketuploader
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/TicketUploader.conf
 %attr(755,root,root) %{_libdir}/%{name}/libTicketUploader.so
 %{_libdir}/%{name}/TicketUploader.GTKBuilder
 %{_mandir}/man7/%{name}-TicketUploader.7*
 
 %files plugin-filetransfer
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/%{name}/plugins/FileTransfer.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/FileTransfer.conf
 %attr(755,root,root) %{_libdir}/%{name}/libFileTransfer.so
 %{_mandir}/man7/%{name}-FileTransfer.7*
 
 %files addon-python
 %defattr(644,root,root,755)
-%attr(2755, root, abrt) %{_bindir}/%{name}-pyhook-helper
-%config(noreplace) %{_sysconfdir}/%{name}/pyhook.conf
-#%{python_sitearch}/ABRTUtils.so
+%attr(4755,abrt,abrt) %{_libexecdir}/abrt-hook-python
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Python.conf
 %attr(755,root,root) %{_libdir}/%{name}/libPython.so
 %{py_sitescriptdir}/*.py[co]
 

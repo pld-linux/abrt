@@ -8,9 +8,9 @@
      -DBIN_DIR=\"$(bindir)\" \
      -DVAR_RUN=\"$(VAR_RUN)\" \
      -DCONF_DIR=\"$(CONF_DIR)\" \
---- abrt-1.0.0/src/Daemon/RPM.cpp~	2009-12-07 13:30:42.000000000 +0200
-+++ abrt-1.0.0/src/Daemon/RPM.cpp	2009-12-07 13:30:44.935229032 +0200
-@@ -15,9 +15,11 @@
+--- abrt-1.0.7/src/Daemon/RPM.cpp~	2010-02-08 21:22:13.000000000 +0200
++++ abrt-1.0.7/src/Daemon/RPM.cpp	2010-03-15 00:26:28.929435334 +0200
+@@ -33,9 +33,11 @@
  
  void CRPM::LoadOpenGPGPublicKey(const char* pFileName)
  {
@@ -22,7 +22,7 @@
      if (pgpReadPkts(pFileName, &pkt, &pklen) != PGPARMOR_PUBKEY)
      {
          free(pkt);
-@@ -33,11 +35,13 @@
+@@ -51,11 +53,13 @@
          }
      }
      free(pkt);
@@ -36,7 +36,7 @@
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -79,12 +83,14 @@
+@@ -97,12 +101,14 @@
      }
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
@@ -51,22 +51,22 @@
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -113,12 +119,14 @@
-     }
+@@ -128,11 +134,13 @@
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
-+#endif
      return ret;
++#endif
  }
  
  std::string GetDescription(const char* pPackage)
  {
-     std::string pDescription = "";
+-    std::string pDescription;
++    std::string pDescription = "";
 +#if 0
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -134,12 +142,14 @@
+@@ -148,12 +156,14 @@
      }
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
@@ -76,12 +76,13 @@
  
  std::string GetComponent(const char* pFileName)
  {
-     std::string ret = "";
+-    std::string ret;
++    std::string ret = "";
 +#if 0
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, pFileName, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -158,12 +168,14 @@
+@@ -172,12 +182,14 @@
  
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
@@ -89,14 +90,14 @@
      return ret;
  }
  
- std::string GetPackage(const char* pFileName)
+ char* GetPackage(const char* pFileName)
  {
-     std::string ret = "";
+     char* ret = NULL;
 +#if 0
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, pFileName, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -179,5 +191,6 @@
+@@ -188,5 +200,6 @@
  
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
