@@ -15,6 +15,7 @@ Patch1:		%{name}-pld.patch
 Patch2:		rpmkey-pld.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	bison
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
@@ -26,7 +27,6 @@ BuildRequires:	libnotify-devel
 BuildRequires:	libtar-devel
 BuildRequires:	libtool
 BuildRequires:	libzip-devel
-BuildRequires:	nss-devel
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
