@@ -2,13 +2,13 @@
 # - fixes to get working with jbj rpm
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	1.0.8
-Release:	0.8
+Version:	1.0.9
+Release:	0.3
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	0e480999bb77b3babe19373c03057df4
+# Source0-md5:	aaa31f787ae7c144c57837928d26fdc9
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
 Patch1:		%{name}-pld.patch
@@ -99,17 +99,6 @@ Requires:	yum-utils
 This package contains hook for C/C++ crashed programs and abrt's C/C++
 analyzer plugin.
 
-%package plugin-firefox
-Summary:	abrt's Firefox analyzer plugin
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	elfutils
-Requires:	gdb >= 7.0-3
-Requires:	yum-utils
-
-%description plugin-firefox
-This package contains hook for Firefox
-
 %package addon-kerneloops
 Summary:	abrt's kerneloops addon
 Group:		Libraries
@@ -123,6 +112,22 @@ Obsoletes:	kerneloops
 This package contains plugin for collecting kernel crash information
 and reporter plugin which sends this information to specified server,
 usually to kerneloops.org.
+
+%package plugin-rhfastcheck
+Summary:	%{name}'s rhfastcheck plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-rhfastcheck
+Plugin to quickly check RH support DB for known solution.
+
+%package plugin-rhticket
+Summary:	%{name}'s rhticket plugin
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-rhticket
+Plugin to report bugs into RH support system.
 
 %package plugin-logger
 Summary:	abrt's logger reporter plugin
@@ -300,6 +305,19 @@ if [ "$1" = "0" ]; then
 	%groupremove abrt
 fi
 
+%post gui
+# update icon cache
+touch --no-create %{_datadir}/icons/hicolor || :
+if [ -x %{_bindir}/gtk-update-icon-cache ]; then
+	%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
+fi
+
+%postun gui
+touch --no-create %{_datadir}/icons/hicolor || :
+if [ -x %{_bindir}/gtk-update-icon-cache ]; then
+	%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
+fi
+
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
@@ -345,10 +363,18 @@ fi
 %files gui
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/%{name}-gui
-%{_datadir}/%{name}
+%dir %{_datadir}/%{name}
+# all glade, gtkbuilder and py files for gui
+%{_datadir}/%{name}/*.py*
+%{_datadir}/%{name}/*.glade
 %{_desktopdir}/%{name}.desktop
-%{_pixmapsdir}/abrt.png
-%{_iconsdir}/hicolor/48x48/apps/*.png
+%{_iconsdir}/hicolor/*/apps/*
+# XXX ... should be in hicolor dir?
+%dir %{_datadir}/%{name}/icons
+%dir %{_datadir}/%{name}/icons/hicolor
+%dir %{_datadir}/%{name}/icons/hicolor/*
+%dir %{_datadir}/%{name}/icons/hicolor/*/status
+%{_datadir}/%{name}/icons/hicolor/*/status/*.png
 %attr(755,root,root) %{_bindir}/%{name}-applet
 %{_sysconfdir}/xdg/autostart/%{name}-applet.desktop
 
@@ -358,9 +384,6 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libCCpp.so
 %attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
 %dir %{_localstatedir}/cache/%{name}-di
-
-#%files plugin-firefox
-#%{_libdir}/%{name}/libFirefox.so*
 
 %files addon-kerneloops
 %defattr(644,root,root,755)
@@ -404,6 +427,14 @@ fi
 %{_libdir}/%{name}/Bugzilla.GTKBuilder
 %{_mandir}/man7/%{name}-Bugzilla.7*
 
+%files plugin-rhfastcheck
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/librhfastcheck.so
+
+%files plugin-rhticket
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/librhticket.so
+
 %files plugin-catcut
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Catcut.conf
@@ -430,6 +461,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/Python.conf
 %attr(755,root,root) %{_libdir}/%{name}/libPython.so
 %{py_sitescriptdir}/*.py[co]
+%{py_sitescriptdir}/abrt.pth
 
 %files cli
 %defattr(644,root,root,755)
