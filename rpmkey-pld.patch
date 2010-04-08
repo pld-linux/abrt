@@ -1,12 +1,6 @@
---- abrt-1.0.7/src/Daemon/gpg_keys~	2010-02-12 18:31:59.000000000 +0200
-+++ abrt-1.0.7/src/Daemon/gpg_keys	2010-03-15 00:30:17.102537684 +0200
-@@ -1,7 +1,2 @@
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta-2
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-auxiliary
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta-2
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-beta
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-former
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-release
--/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-legacy-rhx
+--- abrt-1.0.8/src/Daemon/gpg_keys~	2010-02-12 00:52:28.000000000 +0200
++++ abrt-1.0.8/src/Daemon/gpg_keys	2010-03-24 12:47:24.745636712 +0200
+@@ -1 +1,2 @@
+-/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora
 +/etc/pki/rpm-gpg/PLD-2.0-Ac-GPG-key.asc
 +/etc/pki/rpm-gpg/PLD-3.0-Th-GPG-key.asc

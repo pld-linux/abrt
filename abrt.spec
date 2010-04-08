@@ -2,13 +2,13 @@
 # - fixes to get working with jbj rpm
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	1.0.7
-Release:	0.7
+Version:	1.0.8
+Release:	0.8
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
-Source0:	http://jmoskovc.fedorapeople.org/%{name}-%{version}.tar.gz
-# Source0-md5:	edb93af31b1bc7b5653ccbf7bb6b4dce
+Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
+# Source0-md5:	0e480999bb77b3babe19373c03057df4
 Source1:	%{name}.init
 Patch0:		%{name}-rpm.patch
 Patch1:		%{name}-pld.patch
@@ -35,6 +35,7 @@ BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	sqlite3-devel
+BuildRequires:	xmlrpc-c-client
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
 BuildRequires:	zlib-devel
 Requires(postun):	/usr/sbin/groupdel
@@ -210,8 +211,7 @@ Requires:	%{name}-addon-kerneloops
 Requires:	%{name}-addon-python
 # reporters
 Requires:	%{name}-plugin-logger
-Requires:	%{name}-plugin-sosreport
-Requires:	%{name}-plugin-ticketuploader
+Requires:	%{name}-plugin-runapp
 
 %description cli
 This package contains simple command line client for controling abrt
@@ -232,8 +232,7 @@ Requires:	%{name}-addon-python = %{version}-%{release}
 # Default config of addon-ccpp requires gdb
 Requires:	%{name}-gui
 Requires:	%{name}-plugin-logger
-Requires:	%{name}-plugin-sosreport
-Requires:	%{name}-plugin-ticketuploader
+Requires:	%{name}-plugin-runapp
 Requires:	gdb >= 7.0-3
 Provides:	bug-buddy
 Obsoletes:	bug-buddy
@@ -369,7 +368,10 @@ fi
 %attr(755,root,root) %{_bindir}/dumpoops
 %attr(755,root,root) %{_libdir}/%{name}/libKerneloops.so
 %attr(755,root,root) %{_libdir}/%{name}/libKerneloopsScanner.so
+%attr(755,root,root) %{_libdir}/%{name}/libKerneloopsReporter.so
+%{_libdir}/%{name}/KerneloopsReporter.GTKBuilder
 %{_mandir}/man7/%{name}-KerneloopsScanner.7*
+%{_mandir}/man7/%{name}-KerneloopsReporter.7*
 
 %files plugin-logger
 %defattr(644,root,root,755)

@@ -8,8 +8,8 @@
      -DBIN_DIR=\"$(bindir)\" \
      -DVAR_RUN=\"$(VAR_RUN)\" \
      -DCONF_DIR=\"$(CONF_DIR)\" \
---- abrt-1.0.7/src/Daemon/RPM.cpp~	2010-02-08 21:22:13.000000000 +0200
-+++ abrt-1.0.7/src/Daemon/RPM.cpp	2010-03-15 00:26:28.929435334 +0200
+--- abrt-1.0.7/src/Daemon/RPM.cpp	2010-03-15 00:26:28.929435334 +0200
++++ abrt-1.0.8/src/Daemon/RPM.cpp	2010-03-24 13:03:13.691485654 +0200
 @@ -33,9 +33,11 @@
  
  void CRPM::LoadOpenGPGPublicKey(const char* pFileName)
@@ -51,7 +51,7 @@
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -128,11 +134,13 @@
+@@ -128,23 +134,25 @@
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
      return ret;
@@ -62,17 +62,29 @@
  {
 -    std::string pDescription;
 +    std::string pDescription = "";
-+#if 0
++
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -148,12 +156,14 @@
+     if (header != NULL)
+     {
+-        rpmtd td = rpmtdNew();
+-        headerGet(header, RPMTAG_SUMMARY, td, HEADERGET_DEFAULT);
+-        const char* summary = rpmtdGetString(td);
+-        headerGet(header, RPMTAG_DESCRIPTION, td, HEADERGET_DEFAULT);
+-        const char* description = rpmtdGetString(td);
++        const char *summary, *description;
++        int_32 type, count;
++
++        headerGetEntry(header, RPMTAG_SUMMARY, &type, (void**)&summary, &count);
++        headerGetEntry(header, RPMTAG_DESCRIPTION, &type, (void**)&description, &count);
++
+         pDescription = summary + std::string("\n\n") + description;
+-        rpmtdFree(td);
      }
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
-+#endif
-     return pDescription;
- }
+@@ -153,7 +161,8 @@
  
  std::string GetComponent(const char* pFileName)
  {
@@ -82,7 +94,7 @@
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, pFileName, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -172,12 +182,14 @@
+@@ -172,12 +181,14 @@
  
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
@@ -97,8 +109,7 @@
      rpmts ts = rpmtsCreate();
      rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, pFileName, 0);
      Header header = rpmdbNextIterator(iter);
-@@ -188,5 +200,6 @@
- 
+@@ -189,4 +200,5 @@
      rpmdbFreeIterator(iter);
      rpmtsFree(ts);
 +#endif
