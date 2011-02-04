@@ -73,6 +73,8 @@ Development libraries and headers for %{name}.
 %package gui
 Summary:	abrt's gui
 Group:		X11/Applications
+Requires(post,postun):	gtk-update-icon-cache
+Requires(post,postun):	hicolor-icon-theme
 Requires:	%{name} = %{version}-%{release}
 Requires:	python-dbus
 Requires:	python-gnome-desktop-keyring
@@ -306,17 +308,10 @@ if [ "$1" = "0" ]; then
 fi
 
 %post gui
-# update icon cache
-touch --no-create %{_datadir}/icons/hicolor || :
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-	%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
-fi
+%update_icon_cache hicolor
 
 %postun gui
-touch --no-create %{_datadir}/icons/hicolor || :
-if [ -x %{_bindir}/gtk-update-icon-cache ]; then
-	%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
-fi
+%update_icon_cache hicolor
 
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
