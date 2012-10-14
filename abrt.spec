@@ -9,6 +9,7 @@ Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
 # Source0-md5:	0ac147b6e43ca873e6b1927601ec22a4
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
+Patch1:		automake.patch
 Patch2:		rpmkey-pld.patch
 Patch3:		format_security.patch
 BuildRequires:	autoconf
@@ -249,6 +250,7 @@ environments.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 
