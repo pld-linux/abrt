@@ -1,0 +1,11 @@
+--- abrt-2.0.8/src/plugins/abrt-retrace-client.c.str_fmt~	2012-03-11 21:23:29.615896279 +0100
++++ abrt-2.0.8/src/plugins/abrt-retrace-client.c	2012-03-11 21:23:52.795907834 +0100
+@@ -613,7 +613,7 @@ static int create(bool delete_temp_archi
+     if (response_code == 500 || response_code == 507)
+     {
+         alert_server_error();
+-        error_msg_and_die(http_body);
++        error_msg_and_die("%s", http_body);
+     }
+     else if (response_code == 403)
+     {

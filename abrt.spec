@@ -1,18 +1,16 @@
-# TODO
-# - fixes to get working with jbj rpm
 Summary:	Automatic bug detection and reporting tool
 Name:		abrt
-Version:	1.0.9
-Release:	0.3
+Version:	2.0.15
+Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 URL:		https://fedorahosted.org/abrt/
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	aaa31f787ae7c144c57837928d26fdc9
+# Source0-md5:	0ac147b6e43ca873e6b1927601ec22a4
 Source1:	%{name}.init
-Patch0:		%{name}-rpm.patch
-Patch1:		%{name}-pld.patch
+Patch0:		%{name}-rpm5.patch
 Patch2:		rpmkey-pld.patch
+Patch3:		format_security.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
@@ -251,8 +249,8 @@ environments.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 %{__libtoolize}
@@ -260,7 +258,9 @@ environments.
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-%configure
+%configure \
+	--with-systemdsystemunitdir=%{systemdunitdir}
+
 %{__make}
 
 %install
