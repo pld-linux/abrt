@@ -15,6 +15,7 @@ Patch3:		format_security.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
+BuildRequires:	btparser-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	dbus-devel
@@ -23,6 +24,9 @@ BuildRequires:	gtk+2-devel
 BuildRequires:	intltool
 BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
+BuildRequires:	libreport-devel
+BuildRequires:	libreport-gtk-devel
+BuildRequires:	libreport-web-devel
 BuildRequires:	libtar-devel
 BuildRequires:	libtool
 BuildRequires:	libzip-devel
@@ -36,6 +40,7 @@ BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	sqlite3-devel
 BuildRequires:	xmlrpc-c-client
 BuildRequires:	xmlrpc-c-devel >= 1.20.3-1
+BuildRequires:	xmlto
 BuildRequires:	zlib-devel
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
