@@ -190,3 +190,35 @@
  
  #ifdef __cplusplus
  extern "C" {
+--- abrt-2.0.15/src/plugins/bodhi.c~	2012-10-05 08:30:34.000000000 +0200
++++ abrt-2.0.15/src/plugins/bodhi.c	2012-10-15 15:54:12.298943477 +0200
+@@ -331,24 +331,23 @@
+     char *nvr = NULL;
+ 
+     rpmts ts = rpmtsCreate();
+-    rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pkg_name, 0);
+-    Header header = rpmdbNextIterator(iter);
++    rpmmi iter = rpmtsInitIterator(ts, RPMTAG_NAME, pkg_name, 0);
++    Header header = rpmmiNext(iter);
+ 
+     if (!header)
+         goto error;
+ 
+     const char *errmsg = NULL;
+-    nvr = headerFormat(header, "%{name}-%{version}-%{release}", &errmsg);
++    nvr = headerSprintf(header, "%{name}-%{version}-%{release}", NULL, NULL, &errmsg);
+ 
+     if (!nvr && errmsg)
+         error_msg("cannot get nvr. reason: %s", errmsg);
+ 
+ error:
+-    rpmdbFreeIterator(iter);
+-    rpmtsFree(ts);
++    iter = rpmmiFree(iter);
++    ts = rpmtsFree(ts);
+ 
+     rpmFreeRpmrc();
+-    rpmFreeCrypto();
+     rpmFreeMacros(NULL);
+ 
+     return nvr;
