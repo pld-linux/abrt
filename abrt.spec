@@ -288,9 +288,6 @@ install -d $RPM_BUILD_ROOT/var/cache/%{name}
 install -d $RPM_BUILD_ROOT/var/cache/%{name}-di
 install -d $RPM_BUILD_ROOT/var/run/%{name}
 
-cp -a src/Gui/abrt.desktop $RPM_BUILD_ROOT%{_desktopdir}/%{name}.desktop
-cp -a src/Applet/%{name}-applet.desktop $RPM_BUILD_ROOT%{_sysconfdir}/xdg/autostart
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
