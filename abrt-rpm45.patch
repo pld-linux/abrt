@@ -1,0 +1,110 @@
+--- abrt-2.0.8/src/daemon/Makefile.am.0011~	2011-12-15 13:39:13.000000000 +0100
++++ abrt-2.0.8/src/daemon/Makefile.am	2012-03-11 21:28:24.900043460 +0100
+@@ -84,6 +84,7 @@ abrt_action_save_package_data_CPPFLAGS =
+     -I$(srcdir)/../include \
+     -I$(srcdir)/../lib \
+     -DCONF_DIR=\"$(CONF_DIR)\" \
++    $(RPM_CFLAGS) \
+     $(GLIB_CFLAGS) \
+     $(LIBREPORT_CFLAGS) \
+     -D_GNU_SOURCE \
+--- abrt-2.1.3/src/daemon/rpm.h.orig	2013-03-13 10:00:17.000000000 +0100
++++ abrt-2.1.3/src/daemon/rpm.h	2013-04-02 18:02:06.019396313 +0200
+@@ -22,6 +22,7 @@
+ #ifndef RPM_H_
+ #define RPM_H_
+ 
++#include "rpmlib.h"
+ #include <rpm/rpmts.h>
+ #include <rpm/rpmcli.h>
+ #include <rpm/rpmdb.h>
+--- abrt-2.1.3/src/daemon/rpm.c.orig	2013-03-13 10:00:17.000000000 +0100
++++ abrt-2.1.3/src/daemon/rpm.c	2013-04-02 18:09:54.892719865 +0200
+@@ -62,7 +62,6 @@ void rpm_init()
+ void rpm_destroy()
+ {
+     rpmFreeRpmrc();
+-    rpmFreeCrypto();
+     rpmFreeMacros(NULL);
+ 
+     list_free_with_free(list_fingerprints);
+@@ -103,7 +102,14 @@ int rpm_chk_fingerprint(const char* pkg)
+     if (!header)
+         goto error;
+ 
+-    pgpsig = headerFormat(header, "%|SIGGPG?{%{SIGGPG:pgpsig}}:{%{SIGPGP:pgpsig}}|", &errmsg);
++    pgpsig = headerSprintf(
++		header,
++		"%|DSAHEADER?{%{DSAHEADER:pgpsig}}:{%|RSAHEADER?{%{RSAHEADER:pgpsig}}:"
++		"{%|SIGGPG?{%{SIGGPG:pgpsig}}:{%|SIGPGP?{%{SIGPGP:pgpsig}}:{(none)}|}|}|}|",
++		NULL,
++		NULL,
++		&errmsg);
++
+     if (!pgpsig && errmsg)
+     {
+         VERB1 log("cannot get siggpg:pgpsig. reason: %s", errmsg);
+@@ -195,14 +201,13 @@ char* rpm_get_component(const char *file
+         rpmdbFreeIterator(iter);
+         rpmtsFree(ts);
+         ts = rpmtsCreate();
+-        if (rpmtsSetRootDir(ts, rootdir_or_NULL) != 0)
+-            goto error1;
++        rpmtsSetRootDir(ts, rootdir_or_NULL);
+         filename += len;
+         rootdir_or_NULL = NULL;
+     }
+ 
+     const char *errmsg = NULL;
+-    srpm = headerFormat(header, "%{SOURCERPM}", &errmsg);
++    srpm = headerSprintf(header, "%{SOURCERPM}", NULL, NULL, &errmsg);
+     if (!srpm && errmsg)
+     {
+         error_msg("cannot get srpm. reason: %s", errmsg);
+@@ -223,7 +228,7 @@ char* rpm_get_component(const char *file
+     static inline int pkg_add_##name(Header header, struct pkg_envra *p) \
+     {                                                                   \
+         const char *errmsg = NULL;                                      \
+-        p->p_##name = headerFormat(header, "%{"#name"}", &errmsg);      \
++        p->p_##name = headerSprintf(header, "%{"#name"}", NULL, NULL, &errmsg);      \
+         if (p->p_##name || !errmsg)                                     \
+             return 0;                                                   \
+                                                                         \
+@@ -268,8 +273,7 @@ struct pkg_envra *rpm_get_package_nvr(co
+         rpmdbFreeIterator(iter);
+         rpmtsFree(ts);
+         ts = rpmtsCreate();
+-        if (rpmtsSetRootDir(ts, rootdir_or_NULL) != 0)
+-            goto error1;
++        rpmtsSetRootDir(ts, rootdir_or_NULL);
+         filename += len;
+         rootdir_or_NULL = NULL;
+     }
+--- abrt-2.1.3/src/plugins/bodhi.c.orig	2013-03-13 10:00:17.000000000 +0100
++++ abrt-2.1.3/src/plugins/bodhi.c	2013-04-02 18:15:58.076045639 +0200
+@@ -18,6 +18,8 @@
+ */
+ 
+ #include <json/json.h>
++#include <stdint.h>
++#include <rpmlib.h>
+ #include <rpm/rpmts.h>
+ #include <rpm/rpmcli.h>
+ #include <rpm/rpmdb.h>
+@@ -338,7 +340,7 @@ static char *rpm_get_nvr_by_pkg_name(con
+         goto error;
+ 
+     const char *errmsg = NULL;
+-    nvr = headerFormat(header, "%{name}-%{version}-%{release}", &errmsg);
++    nvr = headerSprintf(header, "%{name}-%{version}-%{release}", NULL, NULL, &errmsg);
+ 
+     if (!nvr && errmsg)
+         error_msg("cannot get nvr. reason: %s", errmsg);
+@@ -348,7 +350,6 @@ error:
+     rpmtsFree(ts);
+ 
+     rpmFreeRpmrc();
+-    rpmFreeCrypto();
+     rpmFreeMacros(NULL);
+ 
+     return nvr;
