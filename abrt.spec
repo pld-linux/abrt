@@ -354,6 +354,9 @@ cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
 /var/run/%{name} 0755 root root -
 EOF
 
+# outdated copy of lt
+%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
+
 %find_lang %{name}
 
 %clean
