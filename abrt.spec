@@ -1,15 +1,19 @@
+#
+# Conditional build:
+%bcond_with	satyr	# satyr instead of btparser
+#
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
-# - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-vmcore, -addon-xorg
+# - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-uefioops, -addon-vmcore, -addon-xorg
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.3
+Version:	2.1.5
 Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	ba54ade40bd9688d0260b6e2355d1faa
+# Source0-md5:	45e3dbbcb4c66aefda8bf5b5315bfdc6
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -19,7 +23,7 @@ URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
-BuildRequires:	btparser-devel
+%{!?with_satyr:BuildRequires:	btparser-devel}
 BuildRequires:	dbus-devel
 BuildRequires:	gettext-devel >= 0.17
 BuildRequires:	glib2-devel >= 1:2.21
@@ -42,6 +46,7 @@ BuildRequires:	python-modules
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
+%{?with_satyr:BuildRequires:	satyr-devel}
 BuildRequires:	xmlto
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -98,10 +103,11 @@ Summary(pl.UTF-8):	Dodatek C/C++ do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
-Requires:	btparser
+%{!?with_satyr:Requires:	btparser}
 Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
+%{?with_satyr:Requires:	satyr}
 Requires:	yum-utils
 
 %description addon-ccpp
@@ -146,6 +152,19 @@ handling uncaught exception in Python programs.
 Ten pakiet zawiera pythonowy punkt zaczepienia oraz wtyczkę
 analizatora Pythona do obsługi nie obsłużonych wyjątków w programach w
 Pythonie.
+
+%package addon-uefioops
+Summary:	ABRT's uefioops addon
+Summary(pl.UTF-8):	Dodatek uefioops do ABRT
+Group:		Libraries
+Requires:	%{name}-addon-kerneloops = %{version}-%{release}
+
+%description addon-uefioops
+This package contains plugin for collecting kernel oopses from UEFI
+storage.
+
+%description addon-uefioops -l pl.UTF-8
+Ten pakiet zawiera wtyczkę do zbierania oopsów jądra z danych UEFI.
 
 %package addon-vmcore
 Summary:	ABRT's vmcore addon
@@ -250,6 +269,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
+Requires:	%{name}-addon-uefioops = %{version}-%{release}
 # reporters
 Requires:	libreport-plugin-bugzilla
 Requires:	libreport-plugin-logger
@@ -293,6 +313,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
+Requires:	%{name}-addon-uefioops = %{version}-%{release}
 Requires:	%{name}-addon-vmcore = %{version}-%{release}
 Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
@@ -312,6 +333,21 @@ environments.
 Wirtualny pakiet ułatwiający domyślną instalację w środowiskach
 graficznych.
 
+%package console-notification
+Summary:	ABRT console notification script
+Summary(pl.UTF-8):	Skrypt ABRT do powiadomień na konsoli
+Group:		Applications/System
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-cli = %{version}-%{release}
+
+%description console-notification
+A small script which prints a count of detected problems when someone
+logs in to the shell.
+
+%description console-notification -l pl.UTF-8
+Mały skrypt wypisujący liczbę wykrytych problemów, kiedy ktoś loguje
+się do powłoki.
+
 %prep
 %setup -q
 %if "%{_rpmversion}" >= "5.0"
@@ -330,6 +366,7 @@ graficznych.
 %{__automake}
 %configure \
 	--disable-silent-rules \
+	%{?with_satyr:--with-satyr} \
 	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
@@ -490,6 +527,13 @@ fi
 %{py_sitedir}/abrt.pth
 %{_mandir}/man1/abrt-action-analyze-python.1*
 
+%files addon-uefioops
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/abrt-merge-uefioops
+%attr(755,root,root) %{_sbindir}/abrt-harvest-uefioops
+#%attr(754,root,root) /etc/rc.d/init.d/abrt-uefioops
+%{systemdunitdir}/abrt-uefioops.service
+
 %files addon-vmcore
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-vmcore
@@ -554,3 +598,7 @@ fi
 
 %files desktop
 %defattr(644,root,root,755)
+
+%files console-notification
+%defattr(644,root,root,755)
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/profile.d/abrt-console-notification.sh
