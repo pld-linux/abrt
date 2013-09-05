@@ -287,8 +287,7 @@ Requires(post,postun):	gtk-update-icon-cache
 Requires(post,postun):	hicolor-icon-theme
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-dbus = %{version}-%{release}
-# not available in PLD
-#Requires:	gnome-abrt
+Suggests:	gnome-abrt
 Provides:	abrt-applet = %{version}-%{release}
 Obsoletes:	abrt-applet < 0.0.5
 Conflicts:	abrt-applet < 0.0.5
