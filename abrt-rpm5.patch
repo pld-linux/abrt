@@ -13,11 +13,11 @@
 @@ -62,7 +62,6 @@ void rpm_init()
  void rpm_destroy()
  {
-     rpmFreeRpmrc();
+     /* Mirroring the order of deinit calls in rpm-4.11.1/lib/poptALL.c::rpmcliFini() */
 -    rpmFreeCrypto();
      rpmFreeMacros(NULL);
+     rpmFreeRpmrc();
  
-     list_free_with_free(list_fingerprints);
 @@ -97,13 +96,20 @@ int rpm_chk_fingerprint(const char* pkg)
      const char *errmsg = NULL;
  

@@ -18,17 +18,17 @@
  #include <rpm/rpmts.h>
  #include <rpm/rpmcli.h>
  #include <rpm/rpmdb.h>
---- abrt-2.1.3/src/daemon/rpm.c.orig	2013-03-13 10:00:17.000000000 +0100
-+++ abrt-2.1.3/src/daemon/rpm.c	2013-04-02 18:09:54.892719865 +0200
+--- abrt-2.1.6/src/daemon/rpm.c.orig	2013-07-23 10:10:03.000000000 +0200
++++ abrt-2.1.6/src/daemon/rpm.c	2013-09-04 20:54:27.219767437 +0200
 @@ -62,7 +62,6 @@ void rpm_init()
  void rpm_destroy()
  {
-     rpmFreeRpmrc();
+     /* Mirroring the order of deinit calls in rpm-4.11.1/lib/poptALL.c::rpmcliFini() */
 -    rpmFreeCrypto();
      rpmFreeMacros(NULL);
+     rpmFreeRpmrc();
  
-     list_free_with_free(list_fingerprints);
-@@ -103,7 +102,14 @@ int rpm_chk_fingerprint(const char* pkg)
+@@ -110,7 +109,14 @@ int rpm_chk_fingerprint(const char* pkg)
      if (!header)
          goto error;
  
@@ -44,7 +44,7 @@
      if (!pgpsig && errmsg)
      {
          VERB1 log("cannot get siggpg:pgpsig. reason: %s", errmsg);
-@@ -195,14 +201,13 @@ char* rpm_get_component(const char *file
+@@ -202,14 +208,13 @@ char* rpm_get_component(const char *file
          rpmdbFreeIterator(iter);
          rpmtsFree(ts);
          ts = rpmtsCreate();
@@ -61,7 +61,7 @@
      if (!srpm && errmsg)
      {
          error_msg("cannot get srpm. reason: %s", errmsg);
-@@ -223,7 +228,7 @@ char* rpm_get_component(const char *file
+@@ -230,7 +235,7 @@ char* rpm_get_component(const char *file
      static inline int pkg_add_##name(Header header, struct pkg_envra *p) \
      {                                                                   \
          const char *errmsg = NULL;                                      \
@@ -70,7 +70,7 @@
          if (p->p_##name || !errmsg)                                     \
              return 0;                                                   \
                                                                          \
-@@ -268,8 +273,7 @@ struct pkg_envra *rpm_get_package_nvr(co
+@@ -275,8 +280,7 @@ struct pkg_envra *rpm_get_package_nvr(co
          rpmdbFreeIterator(iter);
          rpmtsFree(ts);
          ts = rpmtsCreate();

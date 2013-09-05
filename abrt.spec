@@ -1,29 +1,26 @@
 #
-# Conditional build:
-%bcond_with	satyr	# satyr instead of btparser
-#
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-uefioops, -addon-vmcore, -addon-xorg
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.5
+Version:	2.1.6
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	45e3dbbcb4c66aefda8bf5b5315bfdc6
+# Source0-md5:	7a8d16a6f316528a767e6be93164e688
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		rpmkey-pld.patch
 Patch3:		format_security.patch
+Patch4:		%{name}-link.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
-%{!?with_satyr:BuildRequires:	btparser-devel}
 BuildRequires:	dbus-devel
 BuildRequires:	gettext-devel >= 0.17
 BuildRequires:	glib2-devel >= 1:2.21
@@ -32,9 +29,9 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
 BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
-BuildRequires:	libreport-devel
-BuildRequires:	libreport-gtk-devel
-BuildRequires:	libreport-web-devel
+BuildRequires:	libreport-devel >= 2.1.6
+BuildRequires:	libreport-gtk-devel >= 2.1.6
+BuildRequires:	libreport-web-devel >= 2.1.6
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
 BuildRequires:	rpm-devel >= 4.5
@@ -46,7 +43,7 @@ BuildRequires:	python-modules
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
-%{?with_satyr:BuildRequires:	satyr-devel}
+BuildRequires:	satyr-devel
 BuildRequires:	xmlto
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -103,11 +100,10 @@ Summary(pl.UTF-8):	Dodatek C/C++ do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
-%{!?with_satyr:Requires:	btparser}
 Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
-%{?with_satyr:Requires:	satyr}
+Requires:	satyr
 Requires:	yum-utils
 
 %description addon-ccpp
@@ -124,7 +120,7 @@ Summary(pl.UTF-8):	Dodatek kerneloops do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	curl
-Requires:	libreport-plugin-kerneloops
+Requires:	libreport-plugin-kerneloops >= 2.1.6
 Obsoletes:	abrt-plugin-kerneloops
 Obsoletes:	abrt-plugin-kerneloopsreporter
 Obsoletes:	kerneloops
@@ -203,7 +199,7 @@ Summary:	ABRT's bodhi plugin
 Summary(pl.UTF-8):	Wtyczka bodhi do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libreport-web-devel >= 2.0.10
+Requires:	libreport-web >= 2.1.6
 Obsoletes:	libreport-plugin-bodhi
 
 %description plugin-bodhi
@@ -232,7 +228,7 @@ Summary:	ABRT DBus service
 Summary(pl.UTF-8):	Usługa DBus ABRT
 Group:		Applications/System
 Requires:	%{name} = %{version}-%{release}
-Requires:	libreport
+Requires:	libreport >= 2.1.6
 
 %description dbus
 ABRT DBus service which provides org.freedesktop.problems API on DBus
@@ -271,8 +267,8 @@ Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
 Requires:	%{name}-addon-uefioops = %{version}-%{release}
 # reporters
-Requires:	libreport-plugin-bugzilla
-Requires:	libreport-plugin-logger
+Requires:	libreport-plugin-bugzilla >= 2.1.6
+Requires:	libreport-plugin-logger >= 2.1.6
 
 %description cli
 This package contains simple command line client for controling ABRT
@@ -286,6 +282,7 @@ pozwalającego na sterowanie demonem poprzez gniazda.
 Summary:	ABRT's GUI
 Summary(pl.UTF-8):	Graficzny interfejs użytkownika do ABRT
 Group:		X11/Applications
+Requires(post,postun):	/sbin/ldconfig
 Requires(post,postun):	gtk-update-icon-cache
 Requires(post,postun):	hicolor-icon-theme
 Requires:	%{name} = %{version}-%{release}
@@ -319,9 +316,9 @@ Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
 Requires:	%{name}-plugin-bodhi = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
-Requires:	libreport-plugin-bugzilla
-Requires:	libreport-plugin-logger
-Requires:	libreport-plugin-ureport
+Requires:	libreport-plugin-bugzilla >= 2.1.6
+Requires:	libreport-plugin-logger >= 2.1.6
+Requires:	libreport-plugin-ureport >= 2.1.6
 Provides:	bug-buddy
 Obsoletes:	bug-buddy
 
@@ -357,6 +354,7 @@ się do powłoki.
 %endif
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %{__libtoolize}
@@ -366,7 +364,6 @@ się do powłoki.
 %{__automake}
 %configure \
 	--disable-silent-rules \
-	%{?with_satyr:--with-satyr} \
 	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
@@ -391,6 +388,8 @@ cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
 /var/run/%{name} 0755 root root -
 EOF
 
+# API not exported
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libabrtconfigui.so
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
 
@@ -419,14 +418,16 @@ if [ "$1" = "0" ]; then
 	%groupremove abrt
 fi
 
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
+
 %post gui
+/sbin/ldconfig
 %update_icon_cache hicolor
 
 %postun gui
+/sbin/ldconfig
 %update_icon_cache hicolor
-
-%post	libs -p /sbin/ldconfig
-%postun	libs -p /sbin/ldconfig
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
@@ -454,6 +455,7 @@ fi
 %{_mandir}/man1/abrt-action-save-package-data.1*
 %{_mandir}/man1/abrt-handle-upload.1*
 %{_mandir}/man1/abrt-server.1*
+%{_mandir}/man1/abrt-watch-log.1*
 %{_mandir}/man5/abrt.conf.5*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5*
 %{_mandir}/man8/abrtd.8*
@@ -475,6 +477,7 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-c
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-ccpp-local
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-core
+%attr(755,root,root) %{_bindir}/abrt-action-analyze-vulnerability
 %attr(755,root,root) %{_bindir}/abrt-action-generate-backtrace
 %attr(755,root,root) %{_bindir}/abrt-action-generate-core-backtrace
 %attr(755,root,root) %{_bindir}/abrt-action-install-debuginfo
@@ -484,28 +487,34 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-dedup-client
 %attr(755,root,root) %{_sbindir}/abrt-install-ccpp-hook
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
+%attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
 %attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
-%{_sysconfdir}/libreport/events/analyze_CCpp.xml
-%{_sysconfdir}/libreport/events/analyze_LocalGDB.xml
-%{_sysconfdir}/libreport/events/collect_GConf.xml
-%{_sysconfdir}/libreport/events/collect_vimrc_system.xml
-%{_sysconfdir}/libreport/events/collect_vimrc_user.xml
-%{_sysconfdir}/libreport/events/collect_xsession_errors.xml
-%{_sysconfdir}/libreport/events/post_report.xml
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/gconf_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/vimrc_event.conf
 %attr(775,abrt,abrt) %dir %{_localstatedir}/cache/abrt-di
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-ccpp
+%{_datadir}/libreport/events/analyze_CCpp.xml
+%{_datadir}/libreport/events/analyze_LocalGDB.xml
+%{_datadir}/libreport/events/collect_GConf.xml
+%{_datadir}/libreport/events/collect_vimrc_system.xml
+%{_datadir}/libreport/events/collect_vimrc_user.xml
+%{_datadir}/libreport/events/collect_xsession_errors.xml
+%{_datadir}/libreport/events/post_report.xml
 %{systemdunitdir}/abrt-ccpp.service
 %{_mandir}/man1/abrt-action-analyze-backtrace.1*
 %{_mandir}/man1/abrt-action-analyze-c.1*
 %{_mandir}/man1/abrt-action-analyze-ccpp-local.1*
+%{_mandir}/man1/abrt-action-analyze-core.1*
+%{_mandir}/man1/abrt-action-analyze-vulnerability.1*
 %{_mandir}/man1/abrt-action-generate-backtrace.1*
 %{_mandir}/man1/abrt-action-generate-core-backtrace.1*
+%{_mandir}/man1/abrt-action-install-debuginfo.1*
 %{_mandir}/man1/abrt-action-list-dsos.1*
+%{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
+%{_mandir}/man1/abrt-dedup-client.1*
 %{_mandir}/man1/abrt-install-ccpp-hook.1*
 
 %files addon-kerneloops
@@ -517,6 +526,8 @@ fi
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-oops
 %{systemdunitdir}/abrt-oops.service
 %{_mandir}/man1/abrt-action-analyze-oops.1*
+%{_mandir}/man1/abrt-action-save-kernel-data.1*
+%{_mandir}/man1/abrt-dump-oops.1*
 
 %files addon-python
 %defattr(644,root,root,755)
@@ -533,17 +544,20 @@ fi
 %attr(755,root,root) %{_sbindir}/abrt-harvest-uefioops
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-uefioops
 %{systemdunitdir}/abrt-uefioops.service
+%{_mandir}/man1/abrt-harvest-uefioops.1*
+%{_mandir}/man1/abrt-merge-uefioops.1*
 
 %files addon-vmcore
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-vmcore
 %attr(755,root,root) %{_sbindir}/abrt-harvest-vmcore
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt-harvest-vmcore.conf
-%{_sysconfdir}/libreport/events/analyze_VMcore.xml
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-vmcore
+%{_datadir}/libreport/events/analyze_VMcore.xml
 %{systemdunitdir}/abrt-vmcore.service
 %{_mandir}/man1/abrt-action-analyze-vmcore.1*
+%{_mandir}/man1/abrt-harvest-vmcore.1*
 
 %files addon-xorg
 %defattr(644,root,root,755)
@@ -552,6 +566,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/xorg_event.conf
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-xorg
 %{systemdunitdir}/abrt-xorg.service
+%{_mandir}/man1/abrt-action-analyze-xorg.1*
+%{_mandir}/man1/abrt-dump-xorg.1*
 
 %files plugin-bodhi
 %defattr(644,root,root,755)
@@ -560,9 +576,9 @@ fi
 
 %files retrace-client
 %defattr(644,root,root,755)
-%{_sysconfdir}/libreport/events/analyze_RetraceServer.xml
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
 %attr(755,root,root) %{_bindir}/abrt-retrace-client
+%{_datadir}/libreport/events/analyze_RetraceServer.xml
 %{_mandir}/man1/abrt-retrace-client.1*
 
 %files dbus
@@ -590,11 +606,18 @@ fi
 %files gui
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-applet
+%attr(755,root,root) %{_bindir}/system-config-abrt
+%attr(755,root,root) %{_libdir}/libabrtconfigui.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libabrtconfigui.so.0
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/icons
+%{_datadir}/%{name}/ui
+%{_desktopdir}/system-config-abrt.desktop
 %{_iconsdir}/hicolor/*/apps/abrt.png
 %{_iconsdir}/hicolor/*/status/abrt.png
 %{_sysconfdir}/xdg/autostart/abrt-applet.desktop
+%{_mandir}/man1/abrt-applet.1*
+%{_mandir}/man1/system-config-abrt.1*
 
 %files desktop
 %defattr(644,root,root,755)
