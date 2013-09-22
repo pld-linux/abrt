@@ -1,22 +1,22 @@
 #
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
-# - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-uefioops, -addon-vmcore, -addon-xorg
+# - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
+%define		libreport_ver	2.1.7
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.6
+Version:	2.1.7
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	7a8d16a6f316528a767e6be93164e688
+# Source0-md5:	c5163a624644f31690160c5fc9ed2401
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
-Patch2:		rpmkey-pld.patch
-Patch3:		format_security.patch
-Patch4:		%{name}-link.patch
+Patch2:		format_security.patch
+Patch3:		%{name}-link.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -29,9 +29,9 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
 BuildRequires:	libmagic-devel
 BuildRequires:	libnotify-devel
-BuildRequires:	libreport-devel >= 2.1.6
-BuildRequires:	libreport-gtk-devel >= 2.1.6
-BuildRequires:	libreport-web-devel >= 2.1.6
+BuildRequires:	libreport-devel >= %{libreport_ver}
+BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
+BuildRequires:	libreport-web-devel >= %{libreport_ver}
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
 BuildRequires:	rpm-devel >= 4.5
@@ -75,6 +75,8 @@ system wtyczek do rozszerzania funkcjonalności.
 Summary:	ABRT shared library
 Summary(pl.UTF-8):	Biblioteka współdzielona ABRT
 Group:		Libraries
+Requires:	glib2 >= 1:2.21
+Requires:	libreport >= %{libreport_ver}
 
 %description libs
 ABRT shared library.
@@ -87,12 +89,14 @@ Summary:	Header files for ABRT livrary
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotekia ABRT
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
+Requires:	glib2-devel >= 1:2.21
+Requires:	libreport-devel >= %{libreport_ver}
 
 %description devel
 Header files for ABRT livrary.
 
 %description devel -l pl.UTF-8
-Pliki nagłówkowe bibliotekia ABRT.
+Pliki nagłówkowe biblioteki ABRT.
 
 %package addon-ccpp
 Summary:	ABRT's C/C++ addon
@@ -120,7 +124,7 @@ Summary(pl.UTF-8):	Dodatek kerneloops do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	curl
-Requires:	libreport-plugin-kerneloops >= 2.1.6
+Requires:	libreport-plugin-kerneloops >= %{libreport_ver}
 Obsoletes:	abrt-plugin-kerneloops
 Obsoletes:	abrt-plugin-kerneloopsreporter
 Obsoletes:	kerneloops
@@ -132,6 +136,20 @@ from system log.
 %description addon-kerneloops -l pl.UTF-8
 Ten pakiet zawiera wtyczkę do zbierania informacji o awarii jądra z
 logu systemowego.
+
+%package addon-pstoreoops
+Summary:	ABRT's pstoreoops addon
+Summary(pl.UTF-8):	Dodatek pstoreoops do ABRT
+Group:		Libraries
+Requires:	%{name}-addon-kerneloops = %{version}-%{release}
+Obsoletes:	abrt-addon-uefioops
+
+%description addon-pstoreoops
+This package contains plugin for collecting kernel oopses from pstore
+storage.
+
+%description addon-pstoreoops -l pl.UTF-8
+Ten pakiet zawiera wtyczkę do zbierania oopsów jądra z danych pstore.
 
 %package addon-python
 Summary:	ABRT's addon for catching and analyzing Python exceptions
@@ -149,18 +167,17 @@ Ten pakiet zawiera pythonowy punkt zaczepienia oraz wtyczkę
 analizatora Pythona do obsługi nie obsłużonych wyjątków w programach w
 Pythonie.
 
-%package addon-uefioops
-Summary:	ABRT's uefioops addon
-Summary(pl.UTF-8):	Dodatek uefioops do ABRT
+%package addon-upload-watch
+Summary:	ABRT's upload addon
+Summary(pl.UTF-8):	Dodatek upload do ABRT
 Group:		Libraries
-Requires:	%{name}-addon-kerneloops = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 
-%description addon-uefioops
-This package contains plugin for collecting kernel oopses from UEFI
-storage.
+%description addon-upload-watch
+This package contains hook for uploaded problems.
 
-%description addon-uefioops -l pl.UTF-8
-Ten pakiet zawiera wtyczkę do zbierania oopsów jądra z danych UEFI.
+%description addon-upload-watch -l pl.UTF-8
+Ten pakiet zawiera uchwyt dla problemów przysłanych.
 
 %package addon-vmcore
 Summary:	ABRT's vmcore addon
@@ -199,7 +216,7 @@ Summary:	ABRT's bodhi plugin
 Summary(pl.UTF-8):	Wtyczka bodhi do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libreport-web >= 2.1.6
+Requires:	libreport-web >= %{libreport_ver}
 Obsoletes:	libreport-plugin-bodhi
 
 %description plugin-bodhi
@@ -228,7 +245,7 @@ Summary:	ABRT DBus service
 Summary(pl.UTF-8):	Usługa DBus ABRT
 Group:		Applications/System
 Requires:	%{name} = %{version}-%{release}
-Requires:	libreport >= 2.1.6
+Requires:	libreport >= %{libreport_ver}
 
 %description dbus
 ABRT DBus service which provides org.freedesktop.problems API on DBus
@@ -265,10 +282,10 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
-Requires:	%{name}-addon-uefioops = %{version}-%{release}
+Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
 # reporters
-Requires:	libreport-plugin-bugzilla >= 2.1.6
-Requires:	libreport-plugin-logger >= 2.1.6
+Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
+Requires:	libreport-plugin-logger >= %{libreport_ver}
 
 %description cli
 This package contains simple command line client for controling ABRT
@@ -287,6 +304,7 @@ Requires(post,postun):	gtk-update-icon-cache
 Requires(post,postun):	hicolor-icon-theme
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-dbus = %{version}-%{release}
+Requires:	%{name}-gui-libs = %{version}-%{release}
 Suggests:	gnome-abrt
 Provides:	abrt-applet = %{version}-%{release}
 Obsoletes:	abrt-applet < 0.0.5
@@ -297,6 +315,33 @@ GTK+ wizard for convenient bug reporting.
 
 %description gui -l pl.UTF-8
 Oparty na GTK+ kreator do wygodnego zgłaszania błędów.
+
+%package gui-libs
+Summary:	ABRT's GUI library
+Summary(pl.UTF-8):	Biblioteka graficznego interfejsu użytkownika ABRT
+Group:		X11/Libraries
+Requires:	%{name}-libs = %{version}-%{release}
+Requires:	gtk+3 >= 3.0
+
+%description gui-libs
+ABRT's GUI library.
+
+%description gui-libs -l pl.UTF-8
+Biblioteka graficznego interfejsu użytkownika ABRT.
+
+%package gui-devel
+Summary:	Header files for ABRT GUI library
+Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki graficznego interfejsu użytkownika ABRT
+Group:		X11/Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+Requires:	%{name}-gui-libs = %{version}-%{release}
+Requires:	gtk+3-devel >= 3.0
+
+%description gui-devel
+Header files for ABRT GUI library.
+
+%description gui-devel -l pl.UTF-8
+Pliki nagłówkowe biblioteki graficznego interfejsu użytkownika ABRT.
 
 %package desktop
 Summary:	Virtual package to install all necessary packages for usage from desktop environment
@@ -309,15 +354,15 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-python = %{version}-%{release}
-Requires:	%{name}-addon-uefioops = %{version}-%{release}
+Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
 Requires:	%{name}-addon-vmcore = %{version}-%{release}
 Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
 Requires:	%{name}-plugin-bodhi = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
-Requires:	libreport-plugin-bugzilla >= 2.1.6
-Requires:	libreport-plugin-logger >= 2.1.6
-Requires:	libreport-plugin-ureport >= 2.1.6
+Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
+Requires:	libreport-plugin-logger >= %{libreport_ver}
+Requires:	libreport-plugin-ureport >= %{libreport_ver}
 Provides:	bug-buddy
 Obsoletes:	bug-buddy
 
@@ -353,7 +398,6 @@ się do powłoki.
 %endif
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 
 %build
 %{__libtoolize}
@@ -387,8 +431,6 @@ cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
 /var/run/%{name} 0755 root root -
 EOF
 
-# API not exported
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/libabrtconfigui.so
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
 
@@ -404,12 +446,14 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /sbin/chkconfig --add abrtd
 %service abrtd restart
+%systemd_post abrtd.service
 
 %preun
 if [ "$1" = "0" ]; then
 	%service abrtd stop
 	/sbin/chkconfig --del abrtd
 fi
+%systemd_preun abrtd.service
 
 %postun
 if [ "$1" = "0" ]; then
@@ -420,13 +464,50 @@ fi
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
+%post addon-ccpp
+%systemd_post abrt-ccpp.service
+
+%preun addon-ccpp
+%systemd_preun abrt-ccpp.service
+
+%post addon-kerneloops
+%systemd_post abrt-oops.service
+
+%preun addon-kerneloops
+%systemd_preun abrt-oops.service
+
+%post addon-pstoreoops
+%systemd_post abrt-pstoreoops.service
+
+%preun addon-pstoreoops
+%systemd_preun abrt-pstoreoops.service
+
+%post addon-upload-watch
+%systemd_post abrt-upload-watch.service
+
+%preun addon-upload-watch
+%systemd_preun abrt-upload-watch.service
+
+%post addon-vmcore
+%systemd_post abrt-vmcore.service
+
+%preun addon-vmcore
+%systemd_preun abrt-vmcore.service
+
+%post addon-xorg
+%systemd_post abrt-xorg.service
+
+%preun addon-xorg
+%systemd_preun abrt-xorg.service
+
 %post gui
-/sbin/ldconfig
 %update_icon_cache hicolor
 
 %postun gui
-/sbin/ldconfig
 %update_icon_cache hicolor
+
+%post	gui-libs -p /sbin/ldconfig
+%postun	gui-libs -p /sbin/ldconfig
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
@@ -441,7 +522,7 @@ fi
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/gpg_keys
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/gpg_keys.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/xorg.conf
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_event.conf
@@ -467,7 +548,11 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libabrt.so
-%{_includedir}/abrt
+%dir %{_includedir}/abrt
+%{_includedir}/abrt/abrt-dbus.h
+%{_includedir}/abrt/hooklib.h
+%{_includedir}/abrt/libabrt.h
+%{_includedir}/abrt/problem_api.h
 %{_pkgconfigdir}/abrt.pc
 
 %files addon-ccpp
@@ -528,6 +613,15 @@ fi
 %{_mandir}/man1/abrt-action-save-kernel-data.1*
 %{_mandir}/man1/abrt-dump-oops.1*
 
+%files addon-pstoreoops
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/abrt-merge-pstoreoops
+%attr(755,root,root) %{_sbindir}/abrt-harvest-pstoreoops
+%{systemdunitdir}/abrt-pstoreoops.service
+#%attr(754,root,root) /etc/rc.d/init.d/abrt-pstoreoops
+%{_mandir}/man1/abrt-harvest-pstoreoops.1*
+%{_mandir}/man1/abrt-merge-pstoreoops.1*
+
 %files addon-python
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
@@ -537,14 +631,11 @@ fi
 %{py_sitedir}/abrt.pth
 %{_mandir}/man1/abrt-action-analyze-python.1*
 
-%files addon-uefioops
+%files addon-upload-watch
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/abrt-merge-uefioops
-%attr(755,root,root) %{_sbindir}/abrt-harvest-uefioops
-#%attr(754,root,root) /etc/rc.d/init.d/abrt-uefioops
-%{systemdunitdir}/abrt-uefioops.service
-%{_mandir}/man1/abrt-harvest-uefioops.1*
-%{_mandir}/man1/abrt-merge-uefioops.1*
+%attr(755,root,root) %{_sbindir}/abrt-upload-watch
+%{systemdunitdir}/abrt-upload-watch.service
+%{_mandir}/man1/abrt-upload-watch.1*
 
 %files addon-vmcore
 %defattr(644,root,root,755)
@@ -606,17 +697,26 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-applet
 %attr(755,root,root) %{_bindir}/system-config-abrt
-%attr(755,root,root) %{_libdir}/libabrtconfigui.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libabrtconfigui.so.0
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/icons
 %{_datadir}/%{name}/ui
-%{_desktopdir}/system-config-abrt.desktop
 %{_iconsdir}/hicolor/*/apps/abrt.png
 %{_iconsdir}/hicolor/*/status/abrt.png
 %{_sysconfdir}/xdg/autostart/abrt-applet.desktop
 %{_mandir}/man1/abrt-applet.1*
 %{_mandir}/man1/system-config-abrt.1*
+
+%files gui-libs
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libabrt_gui.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libabrt_gui.so.0
+
+%files gui-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libabrt_gui.so
+%{_includedir}/abrt/abrt-config-widget.h
+%{_includedir}/abrt/system-config-abrt.h
+%{_pkgconfigdir}/abrt_gui.pc
 
 %files desktop
 %defattr(644,root,root,755)
