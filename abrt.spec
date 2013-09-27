@@ -7,7 +7,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.1.7
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
@@ -427,7 +427,7 @@ install -d $RPM_BUILD_ROOT/var/run/%{name}
 
 install -d $RPM_BUILD_ROOT/usr/lib/tmpfiles.d
 cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
-/var/run/%{name} 0755 root root -
+d /var/run/%{name} 0755 root root -
 EOF
 
 %{__rm} $RPM_BUILD_ROOT%{py_sitedir}/problem/*.la
