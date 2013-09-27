@@ -17,6 +17,7 @@ Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		format_security.patch
 Patch3:		%{name}-link.patch
+Patch4:		%{name}-pythondir.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -261,9 +262,6 @@ Summary:	ABRT Python API
 Summary(pl.UTF-8):	API Pythona do ABRT
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
-%if "%{_rpmversion}" >= "5.0"
-BuildArch:	noarch
-%endif
 
 %description python
 High-level API for querying, creating and manipulating problems
@@ -398,6 +396,7 @@ się do powłoki.
 %endif
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %{__libtoolize}
@@ -431,6 +430,7 @@ cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
 /var/run/%{name} 0755 root root -
 EOF
 
+%{__rm} $RPM_BUILD_ROOT%{py_sitedir}/problem/*.la
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
 
@@ -684,7 +684,9 @@ fi
 
 %files python
 %defattr(644,root,root,755)
-%{py_sitescriptdir}/problem
+%dir %{py_sitedir}/problem
+%attr(755,root,root) %{py_sitedir}/problem/_pyabrt.so
+%{py_sitedir}/problem/*.py[co]
 %{_mandir}/man5/abrt-python.5*
 %{_docdir}/abrt-python-%{version}
 
