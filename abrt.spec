@@ -35,12 +35,12 @@ BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
 BuildRequires:	libreport-web-devel >= %{libreport_ver}
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
-BuildRequires:	rpm-devel >= 4.5
 BuildRequires:	nss-devel
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 BuildRequires:	python-modules
+BuildRequires:	rpm-devel >= 4.5
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
@@ -53,6 +53,7 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
+Requires:	python-pyinotify
 Provides:	group(abrt)
 Provides:	user(abrt)
 Obsoletes:	abrt-plugin-filetransfer
@@ -279,8 +280,8 @@ Requires:	%{name} = %{version}-%{release}
 # analyzers
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
-Requires:	%{name}-addon-python = %{version}-%{release}
 Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
+Requires:	%{name}-addon-python = %{version}-%{release}
 # reporters
 Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
 Requires:	libreport-plugin-logger >= %{libreport_ver}
@@ -351,8 +352,8 @@ Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
-Requires:	%{name}-addon-python = %{version}-%{release}
 Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
+Requires:	%{name}-addon-python = %{version}-%{release}
 Requires:	%{name}-addon-vmcore = %{version}-%{release}
 Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
@@ -425,8 +426,8 @@ install -d $RPM_BUILD_ROOT/var/cache/%{name}
 install -d $RPM_BUILD_ROOT/var/cache/%{name}-di
 install -d $RPM_BUILD_ROOT/var/run/%{name}
 
-install -d $RPM_BUILD_ROOT/usr/lib/tmpfiles.d
-cat >$RPM_BUILD_ROOT/usr/lib/tmpfiles.d/abrt.conf <<EOF
+install -d $RPM_BUILD_ROOT%{systemdtmpfilesdir}
+cat > $RPM_BUILD_ROOT%{systemdtmpfilesdir}/abrt.conf <<EOF
 d /var/run/%{name} 0755 root root -
 EOF
 
@@ -434,7 +435,7 @@ EOF
 # examples
 %{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 # outdated copy of lt
-%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
 
 %find_lang %{name}
 
@@ -533,7 +534,7 @@ fi
 %{systemdunitdir}/abrtd.service
 %attr(775,root,abrt) %dir /var/cache/%{name}
 %dir /var/run/%{name}
-/usr/lib/tmpfiles.d/abrt.conf
+%{systemdtmpfilesdir}/abrt.conf
 %{_mandir}/man1/abrt-action-save-package-data.1*
 %{_mandir}/man1/abrt-handle-upload.1*
 %{_mandir}/man1/abrt-server.1*
@@ -725,4 +726,4 @@ fi
 
 %files console-notification
 %defattr(644,root,root,755)
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/profile.d/abrt-console-notification.sh
+%config(noreplace) %verify(not md5 mtime size) /etc/profile.d/abrt-console-notification.sh
