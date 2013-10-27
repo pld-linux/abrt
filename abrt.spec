@@ -2,16 +2,16 @@
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
-%define		libreport_ver	2.1.7
+%define		libreport_ver	2.1.9
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.7
-Release:	3
+Version:	2.1.9
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	c5163a624644f31690160c5fc9ed2401
+# Source0-md5:	b70b03cfb9f496152949ebf92abe6479
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -431,6 +431,8 @@ d /var/run/%{name} 0755 root root -
 EOF
 
 %{__rm} $RPM_BUILD_ROOT%{py_sitedir}/problem/*.la
+# examples
+%{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/lt_LT
 
@@ -568,7 +570,6 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-list-dsos
 %attr(755,root,root) %{_bindir}/abrt-action-perform-ccpp-analysis
 %attr(755,root,root) %{_bindir}/abrt-action-trim-files
-%attr(755,root,root) %{_bindir}/abrt-dedup-client
 %attr(755,root,root) %{_sbindir}/abrt-install-ccpp-hook
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
@@ -598,7 +599,6 @@ fi
 %{_mandir}/man1/abrt-action-list-dsos.1*
 %{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
-%{_mandir}/man1/abrt-dedup-client.1*
 %{_mandir}/man1/abrt-install-ccpp-hook.1*
 
 %files addon-kerneloops
@@ -658,6 +658,7 @@ fi
 %{systemdunitdir}/abrt-xorg.service
 %{_mandir}/man1/abrt-action-analyze-xorg.1*
 %{_mandir}/man1/abrt-dump-xorg.1*
+%{_mandir}/man5/abrt-xorg.conf.5*
 
 %files plugin-bodhi
 %defattr(644,root,root,755)
@@ -688,7 +689,6 @@ fi
 %attr(755,root,root) %{py_sitedir}/problem/_pyabrt.so
 %{py_sitedir}/problem/*.py[co]
 %{_mandir}/man5/abrt-python.5*
-%{_docdir}/abrt-python-%{version}
 
 %files cli
 %defattr(644,root,root,755)
