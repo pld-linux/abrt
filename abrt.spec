@@ -53,7 +53,6 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	python-pyinotify
 Provides:	group(abrt)
 Provides:	user(abrt)
 Obsoletes:	abrt-plugin-filetransfer
