@@ -2,16 +2,16 @@
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
-%define		libreport_ver	2.1.9
+%define		libreport_ver	2.1.12
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.9
-Release:	2
+Version:	2.1.12
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	b70b03cfb9f496152949ebf92abe6479
+# Source0-md5:	2e659a4acf115065aa0cf52398e2a9d5
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -40,12 +40,13 @@ BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 BuildRequires:	python-modules
-BuildRequires:	rpm-devel >= 4.5
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	satyr-devel
 BuildRequires:	xmlto
+BuildRequires:	xorg-lib-libICE-devel
+BuildRequires:	xorg-lib-libSM-devel
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
@@ -436,6 +437,9 @@ EOF
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
 
+# fool man verification - report_event.conf.5 belongs to libreport (NOTE: don't package it here)
+touch $RPM_BUILD_ROOT%{_mandir}/man5/report_event.conf.5
+
 %find_lang %{name}
 
 %clean
@@ -514,18 +518,26 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
+%attr(755,root,root) %{_bindir}/abrt-action-notify
 %attr(755,root,root) %{_bindir}/abrt-action-save-package-data
 %attr(755,root,root) %{_bindir}/abrt-handle-upload
 %attr(755,root,root) %{_bindir}/abrt-watch-log
+%attr(755,root,root) %{_sbindir}/abrt-auto-reporting
 %attr(755,root,root) %{_sbindir}/abrt-server
 %attr(755,root,root) %{_sbindir}/abrtd
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
+%dir %{_datadir}/%{name}
+%dir %{_datadir}/%{name}/conf.d
+%{_datadir}/%{name}/conf.d/abrt.conf
+%{_datadir}/%{name}/conf.d/abrt-action-save-package-data.conf
+%{_datadir}/%{name}/conf.d/gpg_keys.conf
+%dir %{_datadir}/%{name}/conf.d/plugins
+%{_datadir}/augeas/lenses/abrt.aug
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt-action-save-package-data.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/gpg_keys.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/xorg.conf
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/smart_event.conf
@@ -534,12 +546,17 @@ fi
 %attr(775,root,abrt) %dir /var/cache/%{name}
 %dir /var/run/%{name}
 %{systemdtmpfilesdir}/abrt.conf
+%{_mandir}/man1/abrt-action-notify.1*
 %{_mandir}/man1/abrt-action-save-package-data.1*
+%{_mandir}/man1/abrt-auto-reporting.1*
 %{_mandir}/man1/abrt-handle-upload.1*
 %{_mandir}/man1/abrt-server.1*
 %{_mandir}/man1/abrt-watch-log.1*
 %{_mandir}/man5/abrt.conf.5*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5*
+%{_mandir}/man5/abrt_event.conf.5*
+%{_mandir}/man5/gpg_keys.conf.5*
+%{_mandir}/man5/smart_event.conf.5*
 %{_mandir}/man8/abrtd.8*
 
 %files libs
@@ -574,6 +591,7 @@ fi
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
 %attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
+%dir %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/gconf_event.conf
@@ -600,18 +618,26 @@ fi
 %{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
 %{_mandir}/man1/abrt-install-ccpp-hook.1*
+%{_mandir}/man5/abrt-CCpp.conf.5*
+%{_mandir}/man5/ccpp_event.conf.5*
+%{_mandir}/man5/ccpp_retrace_event.conf.5*
+%{_mandir}/man5/gconf_event.conf.5*
+%{_mandir}/man5/vimrc_event.conf.5*
 
 %files addon-kerneloops
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-oops
+%attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
 %attr(755,root,root) %{_bindir}/abrt-action-save-kernel-data
 %attr(755,root,root) %{_bindir}/abrt-dump-oops
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/koops_event.conf
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-oops
 %{systemdunitdir}/abrt-oops.service
 %{_mandir}/man1/abrt-action-analyze-oops.1*
+%{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 %{_mandir}/man1/abrt-action-save-kernel-data.1*
 %{_mandir}/man1/abrt-dump-oops.1*
+%{_mandir}/man5/koops_event.conf.5*
 
 %files addon-pstoreoops
 %defattr(644,root,root,755)
@@ -625,11 +651,14 @@ fi
 %files addon-python
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
+%dir %{_datadir}/%{name}/conf.d/plugins/python.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python_event.conf
 %{py_sitedir}/abrt_exception_handler.py[co]
 %{py_sitedir}/abrt.pth
 %{_mandir}/man1/abrt-action-analyze-python.1*
+%{_mandir}/man5/abrt-python.conf.5*
+%{_mandir}/man5/python_event.conf.5*
 
 %files addon-upload-watch
 %defattr(644,root,root,755)
@@ -641,24 +670,30 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-vmcore
 %attr(755,root,root) %{_sbindir}/abrt-harvest-vmcore
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt-harvest-vmcore.conf
+%dir %{_datadir}/%{name}/conf.d/plugins/vmcore.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/vmcore.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-vmcore
 %{_datadir}/libreport/events/analyze_VMcore.xml
 %{systemdunitdir}/abrt-vmcore.service
 %{_mandir}/man1/abrt-action-analyze-vmcore.1*
 %{_mandir}/man1/abrt-harvest-vmcore.1*
+%{_mandir}/man5/abrt-vmcore.conf.5*
+%{_mandir}/man5/vmcore_event.conf.5*
 
 %files addon-xorg
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-xorg
 %attr(755,root,root) %{_bindir}/abrt-dump-xorg
+%dir %{_datadir}/%{name}/conf.d/plugins/xorg.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/xorg.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/xorg_event.conf
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-xorg
 %{systemdunitdir}/abrt-xorg.service
 %{_mandir}/man1/abrt-action-analyze-xorg.1*
 %{_mandir}/man1/abrt-dump-xorg.1*
 %{_mandir}/man5/abrt-xorg.conf.5*
+%{_mandir}/man5/xorg_event.conf.5*
 
 %files plugin-bodhi
 %defattr(644,root,root,755)
@@ -674,12 +709,20 @@ fi
 
 %files dbus
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_sbindir}/abrt-configuration
 %attr(755,root,root) %{_sbindir}/abrt-dbus
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/dbus_event.conf
 /etc/dbus-1/system.d/dbus-abrt.conf
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xml
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems.xml
+%{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
 %{_datadir}/polkit-1/actions/abrt_polkit.policy
+%{_mandir}/man8/abrt-configuration.8*
 %{_mandir}/man8/abrt-dbus.8*
 %{_docdir}/abrt-dbus-%{version}
 
