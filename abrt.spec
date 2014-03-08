@@ -2,22 +2,23 @@
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
-%define		libreport_ver	2.1.12
+# - teach build system to use python3.2+ __pycache__
+%define		libreport_ver	2.2.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.1.12
+Version:	2.2.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	2e659a4acf115065aa0cf52398e2a9d5
+# Source0-md5:	7d5325ece7728a6058c94999ce2ceccb
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		format_security.patch
 Patch3:		%{name}-link.patch
-Patch4:		%{name}-pythondir.patch
+Patch4:		%{name}-po.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -38,8 +39,10 @@ BuildRequires:	libxml2-devel >= 2
 BuildRequires:	nss-devel
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
-BuildRequires:	python-devel
-BuildRequires:	python-modules
+BuildRequires:	python-devel >= 2
+BuildRequires:	python-modules >= 2
+BuildRequires:	python3-devel >= 3
+BuildRequires:	python3-modules >= 3
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
@@ -154,20 +157,45 @@ storage.
 Ten pakiet zawiera wtyczkę do zbierania oopsów jądra z danych pstore.
 
 %package addon-python
-Summary:	ABRT's addon for catching and analyzing Python exceptions
-Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona
+Summary:	ABRT's addon for catching and analyzing Python 2 exceptions
+Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona 2
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-python = %{version}-%{release}
+# for detecting package name containing offending file
+Suggests:	python-rpm
+# for logging to journal
+Suggests:	python-systemd
 Obsoletes:	gnome-python2-bugbuddy
 
 %description addon-python
 This package contains Python hook and Python analyzer plugin for
-handling uncaught exception in Python programs.
+handling uncaught exception in Python 2 programs.
 
 %description addon-python -l pl.UTF-8
 Ten pakiet zawiera pythonowy punkt zaczepienia oraz wtyczkę
 analizatora Pythona do obsługi nie obsłużonych wyjątków w programach w
-Pythonie.
+Pythonie 2.
+
+%package addon-python3
+Summary:	ABRT's addon for catching and analyzing Python 3 exceptions
+Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona 3
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-python3 = %{version}-%{release}
+# for detecting package name containing offending file (TODO: python3-rpm package)
+#Suggests:	python3-rpm
+# for logging to journal (TODO: python3-systemd package)
+#Suggests:	python3-systemd
+
+%description addon-python3
+This package contains Python hook and Python analyzer plugin for
+handling uncaught exception in Python 3 programs.
+
+%description addon-python3 -l pl.UTF-8
+Ten pakiet zawiera pythonowy punkt zaczepienia oraz wtyczkę
+analizatora Pythona do obsługi nie obsłużonych wyjątków w programach w
+Pythonie 3.
 
 %package addon-upload-watch
 Summary:	ABRT's upload addon
@@ -187,8 +215,7 @@ Summary(pl.UTF-8):	Dodatek vmcore do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
-# not available in PLD
-#Requires:	crash
+Requires:	crash
 
 %description addon-vmcore
 This package contains plugin for collecting kernel crash information
@@ -259,18 +286,34 @@ org.freedesktop.problems, używająca PolicyKit do autoryzacji dostępu
 do danych o problemach.
 
 %package python
-Summary:	ABRT Python API
-Summary(pl.UTF-8):	API Pythona do ABRT
+Summary:	ABRT Python 2 API
+Summary(pl.UTF-8):	API Pythona 2 do ABRT
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
+Requires:	python-libreport >= %{libreport_ver}
 
 %description python
 High-level API for querying, creating and manipulating problems
-handled by ABRT in Python.
+handled by ABRT in Python 2.
 
 %description python -l pl.UTF-8
 Wysokopoziomowe API do odpytywania, tworzenia i obróbki z poziomu
-Pythona problemów obsługiwanych przez ABRT.
+Pythona 2 problemów obsługiwanych przez ABRT.
+
+%package python3
+Summary:	ABRT Python 3 API
+Summary(pl.UTF-8):	API Pythona 3 do ABRT
+Group:		Libraries/Python
+Requires:	%{name} = %{version}-%{release}
+Requires:	python3-libreport >= %{libreport_ver}
+
+%description python3
+High-level API for querying, creating and manipulating problems
+handled by ABRT in Python.
+
+%description python3 -l pl.UTF-8
+Wysokopoziomowe API do odpytywania, tworzenia i obróbki z poziomu
+Pythona 3 problemów obsługiwanych przez ABRT.
 
 %package cli
 Summary:	ABRT's command line interface
@@ -432,8 +475,10 @@ d /var/run/%{name} 0755 root root -
 EOF
 
 %{__rm} $RPM_BUILD_ROOT%{py_sitedir}/problem/*.la
+%{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/problem/*.la
 # examples
 %{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
+%{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
 
@@ -518,6 +563,7 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
+%attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
 %attr(755,root,root) %{_bindir}/abrt-action-save-package-data
 %attr(755,root,root) %{_bindir}/abrt-handle-upload
@@ -546,6 +592,7 @@ fi
 %attr(775,root,abrt) %dir /var/cache/%{name}
 %dir /var/run/%{name}
 %{systemdtmpfilesdir}/abrt.conf
+%{_mandir}/man1/abrt-action-analyze-python.1*
 %{_mandir}/man1/abrt-action-notify.1*
 %{_mandir}/man1/abrt-action-save-package-data.1*
 %{_mandir}/man1/abrt-auto-reporting.1*
@@ -650,15 +697,23 @@ fi
 
 %files addon-python
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/abrt-action-analyze-python
-%dir %{_datadir}/%{name}/conf.d/plugins/python.conf
+%{_datadir}/%{name}/conf.d/plugins/python.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python_event.conf
 %{py_sitedir}/abrt_exception_handler.py[co]
 %{py_sitedir}/abrt.pth
-%{_mandir}/man1/abrt-action-analyze-python.1*
 %{_mandir}/man5/abrt-python.conf.5*
 %{_mandir}/man5/python_event.conf.5*
+
+%files addon-python3
+%defattr(644,root,root,755)
+%{_datadir}/%{name}/conf.d/plugins/python3.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python3.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python3_event.conf
+%{py3_sitedir}/abrt_exception_handler3.py*
+%{py3_sitedir}/abrt3.pth
+%{_mandir}/man5/abrt-python3.conf.5*
+%{_mandir}/man5/python3_event.conf.5*
 
 %files addon-upload-watch
 %defattr(644,root,root,755)
@@ -732,6 +787,13 @@ fi
 %attr(755,root,root) %{py_sitedir}/problem/_pyabrt.so
 %{py_sitedir}/problem/*.py[co]
 %{_mandir}/man5/abrt-python.5*
+
+%files python3
+%defattr(644,root,root,755)
+%dir %{py3_sitedir}/problem
+%attr(755,root,root) %{py3_sitedir}/problem/_py3abrt.so
+%{py3_sitedir}/problem/*.py*
+%{_mandir}/man5/abrt-python3.5*
 
 %files cli
 %defattr(644,root,root,755)
