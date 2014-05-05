@@ -8,7 +8,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.2.0
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
@@ -19,6 +19,7 @@ Patch1:		%{name}-rpm45.patch
 Patch2:		format_security.patch
 Patch3:		%{name}-link.patch
 Patch4:		%{name}-po.patch
+Patch5:		profile.sh.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -441,6 +442,7 @@ się do powłoki.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 %build
 %{__libtoolize}
