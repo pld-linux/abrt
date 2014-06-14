@@ -7,19 +7,18 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.2.0
-Release:	2
+Version:	2.2.1
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	7d5325ece7728a6058c94999ce2ceccb
+# Source0-md5:	799e55397e1f72dde9486395abe17605
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		format_security.patch
 Patch3:		%{name}-link.patch
-Patch4:		%{name}-po.patch
-Patch5:		profile.sh.patch
+Patch4:		profile.sh.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -442,7 +441,6 @@ się do powłoki.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
 
 %build
 %{__libtoolize}
@@ -481,6 +479,10 @@ EOF
 # examples
 %{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 %{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
+# empty, same as af / hr / ms resp.
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{af_ZA,hr_HR,ms_MY}
+# empty version of cs / es / fa / it / ja / ru / ta / uk resp.
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{cs_CZ,es_ES,fa_IR,it_IT,ja_JP,ru_RU,ta_IN,uk_UA}
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
 
@@ -640,7 +642,7 @@ fi
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
 %attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
-%dir %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
+%{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/gconf_event.conf
@@ -679,7 +681,10 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
 %attr(755,root,root) %{_bindir}/abrt-action-save-kernel-data
 %attr(755,root,root) %{_bindir}/abrt-dump-oops
+%{_datadir}/%{name}/conf.d/plugins/oops.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/koops_event.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/oops.conf
+%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.oops.xml
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-oops
 %{systemdunitdir}/abrt-oops.service
 %{_mandir}/man1/abrt-action-analyze-oops.1*
