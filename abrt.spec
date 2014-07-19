@@ -7,12 +7,12 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.2.1
+Version:	2.2.2
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	799e55397e1f72dde9486395abe17605
+# Source0-md5:	5133980911a7d841d073c61a75a490a1
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -481,8 +481,8 @@ EOF
 %{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
 # empty, same as af / hr / ms resp.
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{af_ZA,hr_HR,ms_MY}
-# empty version of cs / es / fa / it / ja / ru / ta / uk resp.
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{cs_CZ,es_ES,fa_IR,it_IT,ja_JP,ru_RU,ta_IN,uk_UA}
+# empty version of cs / es / eu / fa / it / ja / ru / ta / uk resp.
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{cs_CZ,es_ES,eu_ES,fa_IR,it_IT,ja_JP,ru_RU,ta_IN,uk_UA}
 # outdated copy of lt
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
 
