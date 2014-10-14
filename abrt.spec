@@ -3,16 +3,16 @@
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
 # - teach build system to use python3.2+ __pycache__
-%define		libreport_ver	2.2.0
+%define		libreport_ver	2.3.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.2.2
+Version:	2.3.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	5133980911a7d841d073c61a75a490a1
+# Source0-md5:	faa666301f4512723486300212cd7e58
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -47,6 +47,7 @@ BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.219
 BuildRequires:	satyr-devel
+BuildRequires:	systemd-devel
 BuildRequires:	xmlto
 BuildRequires:	xorg-lib-libICE-devel
 BuildRequires:	xorg-lib-libSM-devel
@@ -575,6 +576,7 @@ fi
 %attr(755,root,root) %{_sbindir}/abrt-auto-reporting
 %attr(755,root,root) %{_sbindir}/abrt-server
 %attr(755,root,root) %{_sbindir}/abrtd
+%attr(755,root,root) %{_libexecdir}/abrt-action-generate-machine-id
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
 %dir %{_datadir}/%{name}
@@ -680,6 +682,7 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-oops
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
 %attr(755,root,root) %{_bindir}/abrt-action-save-kernel-data
+%attr(755,root,root) %{_bindir}/abrt-dump-journal-oops
 %attr(755,root,root) %{_bindir}/abrt-dump-oops
 %{_datadir}/%{name}/conf.d/plugins/oops.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/koops_event.conf
@@ -690,7 +693,9 @@ fi
 %{_mandir}/man1/abrt-action-analyze-oops.1*
 %{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
 %{_mandir}/man1/abrt-action-save-kernel-data.1*
+%{_mandir}/man1/abrt-dump-journal-oops.1*
 %{_mandir}/man1/abrt-dump-oops.1*
+%{_mandir}/man5/abrt-oops.conf.5*
 %{_mandir}/man5/koops_event.conf.5*
 
 %files addon-pstoreoops
