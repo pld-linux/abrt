@@ -3,16 +3,16 @@
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
 # - teach build system to use python3.2+ __pycache__
-%define		libreport_ver	2.3.0
+%define		libreport_ver	2.5.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.3.0
-Release:	2
+Version:	2.5.0
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	faa666301f4512723486300212cd7e58
+# Source0-md5:	f2b2f9393117db5365cea014f82dbb73
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -25,12 +25,13 @@ BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
 BuildRequires:	dbus-devel
 BuildRequires:	gettext-tools >= 0.17
-BuildRequires:	glib2-devel >= 1:2.21
+BuildRequires:	glib2-devel >= 1:2.43
+BuildRequires:	gsettings-desktop-schemas-devel >= 3.15.1
 BuildRequires:	gtk+3-devel >= 3.0
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
 BuildRequires:	libmagic-devel
-BuildRequires:	libnotify-devel
+BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libreport-devel >= %{libreport_ver}
 BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
 BuildRequires:	libreport-web-devel >= %{libreport_ver}
@@ -81,7 +82,7 @@ system wtyczek do rozszerzania funkcjonalności.
 Summary:	ABRT shared library
 Summary(pl.UTF-8):	Biblioteka współdzielona ABRT
 Group:		Libraries
-Requires:	glib2 >= 1:2.21
+Requires:	glib2 >= 1:2.43
 Requires:	libreport >= %{libreport_ver}
 
 %description libs
@@ -95,7 +96,7 @@ Summary:	Header files for ABRT livrary
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotekia ABRT
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	glib2-devel >= 1:2.21
+Requires:	glib2-devel >= 1:2.43
 Requires:	libreport-devel >= %{libreport_ver}
 
 %description devel
@@ -109,12 +110,14 @@ Summary:	ABRT's C/C++ addon
 Summary(pl.UTF-8):	Dodatek C/C++ do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-addon-coredump-helper = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
 Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
 Requires:	satyr
 Requires:	yum-utils
+Obsoletes:	%{name}-atomic
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and abrt's C/C++
@@ -123,6 +126,18 @@ analyzer plugin.
 %description addon-ccpp -l pl.UTF-8
 Ten pakiet zawiera punkt zaczepienia dla programów w C/C++, które
 uległy awarii oraz wtyczkę analizatora C/C++ ABRT.
+
+%package addon-coredump-helper
+Summary:	ABRT's /proc/sys/kernel/core_pattern helper
+Summary(pl.UTF-8):	Program pomocniczy ABRT do /proc/sys/kernel/core_pattern
+Group:		Libraries
+Requires:	%{name}-libs = %{version}-%{release}
+
+%description addon-coredump-helper
+This package contains hook for C/C++ crashed programs.
+
+%description addon-coredump-helper -l pl.UTF-8
+Ten pakiet zawiera uchwyt dla programów w C/C++, które uległy awarii.
 
 %package addon-kerneloops
 Summary:	ABRT's kerneloops addon
@@ -240,6 +255,20 @@ from Xorg log.
 %description addon-xorg -l pl.UTF-8
 Ten pakiet zawiera wtyczkę do zbierania informacji o awarii jądra z
 logu Xorg.
+
+%package atomic
+Summary:	Package to make easy default installation on Atomic hosts
+Summary(pl.UTF-8):	Pakiet ułatwiający domyślną instalację na hostach Atomic
+Group:		Applications/System
+Requires:	%{name}-addon-coredump-helper = %{version}-%{release}
+Obsoletes:	%{name}-addon-ccpp
+
+%description atomic
+Package to install all necessary packages for usage from Atomic hosts.
+
+%description atomic -l pl.UTF-8
+Pakiet służący do instalacji wszystkich wymaganych pakietów
+przeznaczonych do użycia z hostów Atomic.
 
 %package plugin-bodhi
 Summary:	ABRT's bodhi plugin
@@ -480,12 +509,8 @@ EOF
 # examples
 %{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 %{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
-# empty, same as af / hr / ms resp.
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{af_ZA,hr_HR,ms_MY}
-# empty version of cs / es / eu / fa / it / ja / ru / ta / uk resp.
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{cs_CZ,es_ES,eu_ES,fa_IR,it_IT,ja_JP,ru_RU,ta_IN,uk_UA}
-# outdated copy of lt
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/lt_LT
+# empty version of ru
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/ru_RU
 
 # fool man verification - report_event.conf.5 belongs to libreport (NOTE: don't package it here)
 touch $RPM_BUILD_ROOT%{_mandir}/man5/report_event.conf.5
@@ -522,9 +547,11 @@ fi
 
 %post addon-ccpp
 %systemd_post abrt-ccpp.service
+%systemd_post abrt-journal-core.service
 
 %preun addon-ccpp
 %systemd_preun abrt-ccpp.service
+%systemd_preun abrt-journal-core.service
 
 %post addon-kerneloops
 %systemd_post abrt-oops.service
@@ -556,6 +583,34 @@ fi
 %preun addon-xorg
 %systemd_preun abrt-xorg.service
 
+%post atomic
+if [ -f %{_sysconfdir}/%{name}/plugins/CCpp.conf ]; then
+	mv -f %{_sysconfdir}/%{name}/plugins/CCpp.conf %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic || exit 1
+fi
+ln -sf %{_sysconfdir}/%{name}/plugins/CCpp_Atomic.conf %{_sysconfdir}/%{name}/plugins/CCpp.conf
+if [ -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf ]; then
+	mv -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic || exit 1;
+fi
+ln -sf %{_datadir}/%{name}/conf.d/plugins/CCpp_Atomic.conf %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
+%systemd_post abrt-coredump-helper.service
+
+%preun atomic
+if [ -L %{_sysconfdir}/%{name}/plugins/CCpp.conf ]; then
+	rm -f %{_sysconfdir}/%{name}/plugins/CCpp.conf
+fi
+if [ -L %{_datadir}/%{name}/conf.d/plugins/CCpp.conf ]; then
+	rm -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
+fi
+if [ -f %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic ]; then
+	mv -f %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic %{_sysconfdir}/%{name}/plugins/CCpp.conf || exit 1
+fi
+if [ -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic ]; then
+	mv -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic %{_datadir}/%{name}/conf.d/plugins/CCpp.conf || exit 1
+fi
+
+%postun atomic
+%systemd_postun_with_restart abrt-coredump-helper.service
+
 %post gui
 %update_icon_cache hicolor
 
@@ -570,6 +625,7 @@ fi
 %doc README
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
+%attr(755,root,root) %{_bindir}/abrt-action-save-container-data
 %attr(755,root,root) %{_bindir}/abrt-action-save-package-data
 %attr(755,root,root) %{_bindir}/abrt-handle-upload
 %attr(755,root,root) %{_bindir}/abrt-watch-log
@@ -640,10 +696,9 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-list-dsos
 %attr(755,root,root) %{_bindir}/abrt-action-perform-ccpp-analysis
 %attr(755,root,root) %{_bindir}/abrt-action-trim-files
-%attr(755,root,root) %{_sbindir}/abrt-install-ccpp-hook
+%attr(755,root,root) %{_bindir}/abrt-dump-journal-core
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
-%attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
 %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
@@ -659,6 +714,7 @@ fi
 %{_datadir}/libreport/events/collect_xsession_errors.xml
 %{_datadir}/libreport/events/post_report.xml
 %{systemdunitdir}/abrt-ccpp.service
+%{systemdunitdir}/abrt-journal-core.service
 %{_mandir}/man1/abrt-action-analyze-backtrace.1*
 %{_mandir}/man1/abrt-action-analyze-c.1*
 %{_mandir}/man1/abrt-action-analyze-ccpp-local.1*
@@ -670,12 +726,17 @@ fi
 %{_mandir}/man1/abrt-action-list-dsos.1*
 %{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
-%{_mandir}/man1/abrt-install-ccpp-hook.1*
 %{_mandir}/man5/abrt-CCpp.conf.5*
 %{_mandir}/man5/ccpp_event.conf.5*
 %{_mandir}/man5/ccpp_retrace_event.conf.5*
 %{_mandir}/man5/gconf_event.conf.5*
 %{_mandir}/man5/vimrc_event.conf.5*
+
+%files addon-coredump-helper
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_sbindir}/abrt-install-ccpp-hook
+%attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
+%{_mandir}/man1/abrt-install-ccpp-hook.1*
 
 %files addon-kerneloops
 %defattr(644,root,root,755)
@@ -762,6 +823,12 @@ fi
 %{_mandir}/man5/abrt-xorg.conf.5*
 %{_mandir}/man5/xorg_event.conf.5*
 
+%files atomic
+%defattr(644,root,root,755)
+%{_datadir}/%{name}/conf.d/plugins/CCpp_Atomic.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp_Atomic.conf
+%{systemdunitdir}/abrt-coredump-helper.service
+
 %files plugin-bodhi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-bodhi
@@ -779,6 +846,7 @@ fi
 %attr(755,root,root) %{_sbindir}/abrt-configuration
 %attr(755,root,root) %{_sbindir}/abrt-dbus
 /etc/dbus-1/system.d/dbus-abrt.conf
+/etc/dbus-1/system.d/org.freedesktop.problems.daemon.conf
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
 %{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml

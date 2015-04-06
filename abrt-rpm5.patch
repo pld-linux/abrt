@@ -8,8 +8,8 @@
      $(GLIB_CFLAGS) \
      $(LIBREPORT_CFLAGS) \
      -D_GNU_SOURCE \
---- abrt-2.1.7/src/daemon/rpm.c.orig	2013-09-10 14:11:13.000000000 +0200
-+++ abrt-2.1.7/src/daemon/rpm.c	2013-09-27 19:07:08.004722755 +0200
+--- abrt-2.4.0/src/daemon/rpm.c.orig	2015-02-19 12:53:14.000000000 +0100
++++ abrt-2.4.0/src/daemon/rpm.c	2015-02-26 16:02:37.659278317 +0100
 @@ -62,7 +62,6 @@ void rpm_init()
  void rpm_destroy()
  {
@@ -41,7 +41,7 @@
 +
      if (!pgpsig && errmsg)
      {
-         VERB1 log("cannot get siggpg:pgpsig. reason: %s", errmsg);
+         log_notice("cannot get siggpg:pgpsig. reason: %s", errmsg);
 @@ -128,8 +134,8 @@ int rpm_chk_fingerprint(const char* pkg)
  
  error:
@@ -53,7 +53,18 @@
      return ret;
  }
  
-@@ -167,8 +173,8 @@ bool CheckHash(const char* pPackage, con
+@@ -146,8 +152,8 @@ bool CheckHash(const char* pPackage, con
+ {
+     bool ret = true;
+     rpmts ts = rpmtsCreate();
+-    rpmdbMatchIterator iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
+-    Header header = rpmdbNextIterator(iter);
++    rpmmi iter = rpmtsInitIterator(ts, RPMTAG_NAME, pPackage, 0);
++    Header header = rpmmiNext(iter);
+     if (header == NULL)
+         goto error;
+ 
+@@ -167,13 +173,13 @@ bool CheckHash(const char* pPackage, con
      }
      rpmfiFree(fi);
  error:
@@ -64,7 +75,42 @@
      return ret;
  }
  */
-@@ -178,15 +184,15 @@ char* rpm_get_component(const char *file
+ 
+-static int rpm_query_file(rpmts *ts, rpmdbMatchIterator *iter, Header *header,
++static int rpm_query_file(rpmts *ts, rpmmi *iter, Header *header,
+         const char *filename, const char *rootdir_or_NULL)
+ {
+     const char *queryname = filename;
+@@ -181,11 +187,7 @@ static int rpm_query_file(rpmts *ts, rpm
+     *ts = rpmtsCreate();
+     if (rootdir_or_NULL)
+     {
+-        if (rpmtsSetRootDir(*ts, rootdir_or_NULL) != 0)
+-        {
+-            rpmtsFree(*ts);
+-            return -1;
+-        }
++        rpmtsSetRootDir(*ts, rootdir_or_NULL);
+ 
+         unsigned len = strlen(rootdir_or_NULL);
+         /* remove 'chroot' prefix */
+@@ -194,12 +196,12 @@ static int rpm_query_file(rpmts *ts, rpm
+     }
+ 
+     *iter = rpmtsInitIterator(*ts, RPMTAG_BASENAMES, queryname, 0);
+-    *header = rpmdbNextIterator(*iter);
++    *header = rpmmiNext(*iter);
+ 
+     if (!(*header) && rootdir_or_NULL)
+     {
+-        rpmdbFreeIterator(*iter);
+-        rpmtsFree(*ts);
++        *iter = rpmmiFree(*iter);
++        *ts = rpmtsFree(*ts);
+ 
+         return rpm_query_file(ts, iter, header, filename, NULL);
+     }
+@@ -212,8 +214,8 @@ char* rpm_get_component(const char *file
      char *ret = NULL;
      char *srpm = NULL;
      rpmts ts;
@@ -73,31 +119,10 @@
 +    rpmmi iter = NULL;
 +    Header header = NULL;
  
-     ts = rpmtsCreate();
-     /* This loop executes once (normally) or twice (if we detect chroot) */
-     while (1)
-     {
-         iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, filename, 0);
--        header = rpmdbNextIterator(iter);
-+        header = rpmmiNext(iter);
-         //log("%s: header('%s'):%p", __func__, filename, header);
-         if (header)
-             break;
-@@ -199,17 +205,16 @@ char* rpm_get_component(const char *file
- 
-         /* It is a chroot */
-         //log("%s: skipping '%s' pfx", __func__, rootdir_or_NULL);
--        rpmdbFreeIterator(iter);
--        rpmtsFree(ts);
-+        iter = rpmmiFree(iter);
-+        ts = rpmtsFree(ts);
-         ts = rpmtsCreate();
--        if (rpmtsSetRootDir(ts, rootdir_or_NULL) != 0)
--            goto error1;
-+        rpmtsSetRootDir(ts, rootdir_or_NULL);
-         filename += len;
-         rootdir_or_NULL = NULL;
-     }
+     if (rpm_query_file(&ts, &iter, &header, filename, rootdir_or_NULL) < 0)
+         return NULL;
+@@ -222,7 +224,7 @@ char* rpm_get_component(const char *file
+         goto error;
  
      const char *errmsg = NULL;
 -    srpm = headerFormat(header, "%{SOURCERPM}", &errmsg);
@@ -105,19 +130,18 @@
      if (!srpm && errmsg)
      {
          error_msg("cannot get srpm. reason: %s", errmsg);
-@@ -220,9 +225,8 @@ char* rpm_get_component(const char *file
+@@ -233,8 +235,8 @@ char* rpm_get_component(const char *file
      free(srpm);
  
   error:
 -    rpmdbFreeIterator(iter);
-- error1:
 -    rpmtsFree(ts);
 +    iter = rpmmiFree(iter);
 +    ts = rpmtsFree(ts);
      return ret;
  }
  
-@@ -230,7 +234,7 @@ char* rpm_get_component(const char *file
+@@ -242,7 +244,7 @@ char* rpm_get_component(const char *file
      static inline int pkg_add_##name(Header header, struct pkg_envra *p) \
      {                                                                   \
          const char *errmsg = NULL;                                      \
@@ -126,7 +150,7 @@
          if (p->p_##name || !errmsg)                                     \
              return 0;                                                   \
                                                                          \
-@@ -249,8 +253,8 @@ pkg_add_id(arch);
+@@ -261,8 +263,8 @@ pkg_add_id(arch);
  struct pkg_envra *rpm_get_package_nvr(const char *filename, const char *rootdir_or_NULL)
  {
      rpmts ts;
@@ -137,43 +161,20 @@
  
      struct pkg_envra *p = NULL;
  
-@@ -259,7 +263,7 @@ struct pkg_envra *rpm_get_package_nvr(co
-     while (1)
-     {
-         iter = rpmtsInitIterator(ts, RPMTAG_BASENAMES, filename, 0);
--        header = rpmdbNextIterator(iter);
-+        header = rpmmiNext(iter);
-         //log("%s: header('%s'):%p", __func__, filename, header);
-         if (header)
-             break;
-@@ -272,11 +276,9 @@ struct pkg_envra *rpm_get_package_nvr(co
- 
-         /* It is a chroot */
-         //log("%s: skipping '%s' pfx", __func__, rootdir_or_NULL);
--        rpmdbFreeIterator(iter);
--        rpmtsFree(ts);
-+        iter = rpmmiFree(iter);
-+        ts = rpmtsFree(ts);
-         ts = rpmtsCreate();
--        if (rpmtsSetRootDir(ts, rootdir_or_NULL) != 0)
--            goto error1;
-         filename += len;
-         rootdir_or_NULL = NULL;
-     }
-@@ -316,16 +318,15 @@ struct pkg_envra *rpm_get_package_nvr(co
+@@ -305,15 +307,15 @@ struct pkg_envra *rpm_get_package_nvr(co
  
      p->p_nvr = xasprintf("%s-%s-%s", p->p_name, p->p_version, p->p_release);
  
 -    rpmdbFreeIterator(iter);
+-    rpmtsFree(ts);
 +    iter = rpmmiFree(iter);
-     rpmtsFree(ts);
++    ts = rpmtsFree(ts);
      return p;
  
   error:
      free_pkg_envra(p);
  
 -    rpmdbFreeIterator(iter);
-- error1:
 -    rpmtsFree(ts);
 +    iter = rpmmiFree(iter);
 +    ts = rpmtsFree(ts);
