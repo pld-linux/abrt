@@ -3,6 +3,10 @@
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
 # - teach build system to use python3.2+ __pycache__
+#
+# Conditional build:
+%bcond_without	tests	# disable pythontests
+#
 %define		libreport_ver	2.5.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
@@ -42,6 +46,7 @@ BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel >= 2
 BuildRequires:	python-modules >= 2
+%{?with_tests:BuildRequires:	python-nose}
 BuildRequires:	python3-devel >= 3
 BuildRequires:	python3-modules >= 3
 BuildRequires:	rpm-devel >= 4.5-28
@@ -480,6 +485,7 @@ się do powłoki.
 %{__automake}
 %configure \
 	--disable-silent-rules \
+	%{!?with_tests:--without-pythontests} \
 	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
