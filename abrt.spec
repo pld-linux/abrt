@@ -7,16 +7,16 @@
 # Conditional build:
 %bcond_without	tests	# disable pythontests
 #
-%define		libreport_ver	2.5.0
+%define		libreport_ver	2.6.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.5.0
+Version:	2.6.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	f2b2f9393117db5365cea014f82dbb73
+# Source0-md5:	b764d6a2a12aaae8cbab3fb7fbe37089
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -39,6 +39,7 @@ BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libreport-devel >= %{libreport_ver}
 BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
 BuildRequires:	libreport-web-devel >= %{libreport_ver}
+BuildRequires:	libselinux-devel
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
 BuildRequires:	nss-devel
