@@ -11,12 +11,12 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.6.0
-Release:	2
+Version:	2.7.1
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	b764d6a2a12aaae8cbab3fb7fbe37089
+# Source0-md5:	fee268003142e35fc72fa8a52941dd80
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -32,6 +32,7 @@ BuildRequires:	gettext-tools >= 0.17
 BuildRequires:	glib2-devel >= 1:2.43
 BuildRequires:	gsettings-desktop-schemas-devel >= 3.15.1
 BuildRequires:	gtk+3-devel >= 3.0
+BuildRequires:	hawkey-devel
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
 BuildRequires:	libmagic-devel
@@ -83,6 +84,19 @@ ABRT to narzędzie pomagające użytkownikom w wykrywaniu defektów w
 aplikacjach oraz tworzeniu raportów błędów ze wszystkimi informacjami
 potrzebnymi utrzymującemu pakiet do poprawienia go. Wykorzystuje
 system wtyczek do rozszerzania funkcjonalności.
+
+%package -n bash-completion-abrt
+Summary:	Bash completion for abrt command
+Summary(pl.UTF-8):	Bashowe dopełnianie parametrów dla polecenia abrt
+Group:		Applications/Shells
+Requires:	%{name} = %{version}-%{release}
+Requires:	bash-completion
+
+%description -n bash-completion-abrt
+Bash completion for abrt command.
+
+%description -n bash-completion-abrt -l pl.UTF-8
+Bashowe dopełnianie parametrów dla polecenia abrt.
 
 %package libs
 Summary:	ABRT shared library
@@ -516,11 +530,14 @@ EOF
 # examples
 %{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 %{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
-# empty version of ru
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/ru_RU
 
 # fool man verification - report_event.conf.5 belongs to libreport (NOTE: don't package it here)
 touch $RPM_BUILD_ROOT%{_mandir}/man5/report_event.conf.5
+
+# empty version of nb,ru
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{no,ru_RU}
+# not supported by glibc yet
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{ach,aln,bal,ilo}
 
 %find_lang %{name}
 
@@ -630,6 +647,7 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
+%attr(755,root,root) %{_bindir}/abrt
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
 %attr(755,root,root) %{_bindir}/abrt-action-save-container-data
@@ -642,6 +660,7 @@ fi
 %attr(755,root,root) %{_libexecdir}/abrt-action-generate-machine-id
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
+%{py_sitedir}/abrtcli
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/conf.d
 %{_datadir}/%{name}/conf.d/abrt.conf
@@ -661,6 +680,7 @@ fi
 %attr(775,root,abrt) %dir /var/cache/%{name}
 %dir /var/run/%{name}
 %{systemdtmpfilesdir}/abrt.conf
+%{_mandir}/man1/abrt.1*
 %{_mandir}/man1/abrt-action-analyze-python.1*
 %{_mandir}/man1/abrt-action-notify.1*
 %{_mandir}/man1/abrt-action-save-package-data.1*
@@ -674,6 +694,10 @@ fi
 %{_mandir}/man5/gpg_keys.conf.5*
 %{_mandir}/man5/smart_event.conf.5*
 %{_mandir}/man8/abrtd.8*
+
+%files -n bash-completion-abrt
+%defattr(644,root,root,755)
+/etc/bash_completion.d/abrt.bash_completion
 
 %files libs
 %defattr(644,root,root,755)
@@ -733,6 +757,7 @@ fi
 %{_mandir}/man1/abrt-action-list-dsos.1*
 %{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
+%{_mandir}/man1/abrt-dump-journal-core.1*
 %{_mandir}/man5/abrt-CCpp.conf.5*
 %{_mandir}/man5/ccpp_event.conf.5*
 %{_mandir}/man5/ccpp_retrace_event.conf.5*
@@ -748,6 +773,7 @@ fi
 %files addon-kerneloops
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-oops
+%attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-alt-component
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
 %attr(755,root,root) %{_bindir}/abrt-action-save-kernel-data
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-oops
@@ -819,6 +845,7 @@ fi
 %files addon-xorg
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-xorg
+%attr(755,root,root) %{_bindir}/abrt-dump-journal-xorg
 %attr(755,root,root) %{_bindir}/abrt-dump-xorg
 %dir %{_datadir}/%{name}/conf.d/plugins/xorg.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/xorg.conf
@@ -826,6 +853,7 @@ fi
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-xorg
 %{systemdunitdir}/abrt-xorg.service
 %{_mandir}/man1/abrt-action-analyze-xorg.1*
+%{_mandir}/man1/abrt-dump-journal-xorg.1*
 %{_mandir}/man1/abrt-dump-xorg.1*
 %{_mandir}/man5/abrt-xorg.conf.5*
 %{_mandir}/man5/xorg_event.conf.5*
@@ -838,7 +866,9 @@ fi
 
 %files plugin-bodhi
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/abrt-action-find-bodhi-update
 %attr(755,root,root) %{_bindir}/abrt-bodhi
+%{_mandir}/man1/abrt-action-find-bodhi-update.1*
 %{_mandir}/man1/abrt-bodhi.1*
 
 %files retrace-client
