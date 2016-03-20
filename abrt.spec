@@ -28,6 +28,7 @@ BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
 BuildRequires:	dbus-devel
+BuildRequires:	docbook-dtd45-xml
 BuildRequires:	gettext-tools >= 0.17
 BuildRequires:	glib2-devel >= 1:2.43
 BuildRequires:	gsettings-desktop-schemas-devel >= 3.15.1
@@ -508,7 +509,9 @@ się do powłoki.
 %install
 rm -rf $RPM_BUILD_ROOT
 %{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
+	DESTDIR=$RPM_BUILD_ROOT \
+	pythondir=%{py_sitescriptdir} \
+	python3dir=%{py3_sitescriptdir}
 
 %py_postclean
 
