@@ -7,22 +7,20 @@
 # Conditional build:
 %bcond_without	tests	# disable pythontests
 #
-%define		libreport_ver	2.6.0
+%define		libreport_ver	2.7.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.7.1
-Release:	2
+Version:	2.8.2
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	fee268003142e35fc72fa8a52941dd80
+# Source0-md5:	055c573c70510e3c09cb12a6cc813507
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
-Patch2:		format_security.patch
-Patch3:		%{name}-link.patch
-Patch4:		profile.sh.patch
+Patch2:		%{name}-link.patch
 URL:		https://fedorahosted.org/abrt/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
@@ -490,8 +488,8 @@ się do powłoki.
 %patch1 -p1
 %endif
 %patch2 -p1
-%patch3 -p1
-%patch4 -p1
+
+%{__sed} -n -e '/^%%changelog/,$p' abrt.spec.in | tail -n +2 > changelog
 
 %build
 %{__libtoolize}
@@ -649,7 +647,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc README
+%doc README.md changelog
 %attr(755,root,root) %{_bindir}/abrt
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
@@ -778,7 +776,6 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-oops
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-alt-component
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
-%attr(755,root,root) %{_bindir}/abrt-action-save-kernel-data
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-oops
 %attr(755,root,root) %{_bindir}/abrt-dump-oops
 %{_datadir}/%{name}/conf.d/plugins/oops.conf
@@ -789,7 +786,6 @@ fi
 %{systemdunitdir}/abrt-oops.service
 %{_mandir}/man1/abrt-action-analyze-oops.1*
 %{_mandir}/man1/abrt-action-check-oops-for-hw-error.1*
-%{_mandir}/man1/abrt-action-save-kernel-data.1*
 %{_mandir}/man1/abrt-dump-journal-oops.1*
 %{_mandir}/man1/abrt-dump-oops.1*
 %{_mandir}/man5/abrt-oops.conf.5*

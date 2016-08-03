@@ -8,8 +8,8 @@
      $(GLIB_CFLAGS) \
      $(LIBREPORT_CFLAGS) \
      -D_GNU_SOURCE \
---- abrt-2.4.0/src/daemon/rpm.c.orig	2015-02-19 12:53:14.000000000 +0100
-+++ abrt-2.4.0/src/daemon/rpm.c	2015-02-26 16:02:37.659278317 +0100
+--- abrt-2.8.2/src/daemon/rpm.c.orig	2016-07-08 09:49:44.000000000 +0200
++++ abrt-2.8.2/src/daemon/rpm.c	2016-08-03 20:51:03.649708165 +0200
 @@ -62,7 +62,6 @@ void rpm_init()
  void rpm_destroy()
  {
@@ -18,7 +18,7 @@
      rpmFreeMacros(NULL);
      rpmFreeRpmrc();
  
-@@ -104,13 +103,20 @@ int rpm_chk_fingerprint(const char* pkg)
+@@ -119,13 +118,20 @@ char *rpm_get_fingerprint(const char *pk
      const char *errmsg = NULL;
  
      rpmts ts = rpmtsCreate();
@@ -42,7 +42,7 @@
      if (!pgpsig && errmsg)
      {
          log_notice("cannot get siggpg:pgpsig. reason: %s", errmsg);
-@@ -128,8 +134,8 @@ int rpm_chk_fingerprint(const char* pkg)
+@@ -138,8 +144,8 @@ char *rpm_get_fingerprint(const char *pk
  
  error:
      free(pgpsig);
@@ -50,10 +50,10 @@
 -    rpmtsFree(ts);
 +    iter = rpmmiFree(iter);
 +    ts = rpmtsFree(ts);
-     return ret;
+     return fingerprint;
  }
  
-@@ -146,8 +152,8 @@ bool CheckHash(const char* pPackage, con
+@@ -156,8 +162,8 @@ bool CheckHash(const char* pPackage, con
  {
      bool ret = true;
      rpmts ts = rpmtsCreate();
@@ -64,7 +64,7 @@
      if (header == NULL)
          goto error;
  
-@@ -167,13 +173,13 @@ bool CheckHash(const char* pPackage, con
+@@ -177,13 +183,13 @@ bool CheckHash(const char* pPackage, con
      }
      rpmfiFree(fi);
  error:
@@ -81,7 +81,7 @@
          const char *filename, const char *rootdir_or_NULL)
  {
      const char *queryname = filename;
-@@ -181,11 +187,7 @@ static int rpm_query_file(rpmts *ts, rpm
+@@ -191,11 +197,7 @@ static int rpm_query_file(rpmts *ts, rpm
      *ts = rpmtsCreate();
      if (rootdir_or_NULL)
      {
@@ -94,7 +94,7 @@
  
          unsigned len = strlen(rootdir_or_NULL);
          /* remove 'chroot' prefix */
-@@ -194,12 +196,12 @@ static int rpm_query_file(rpmts *ts, rpm
+@@ -204,12 +206,12 @@ static int rpm_query_file(rpmts *ts, rpm
      }
  
      *iter = rpmtsInitIterator(*ts, RPMTAG_BASENAMES, queryname, 0);
@@ -110,7 +110,7 @@
  
          return rpm_query_file(ts, iter, header, filename, NULL);
      }
-@@ -212,8 +214,8 @@ char* rpm_get_component(const char *file
+@@ -222,8 +224,8 @@ char* rpm_get_component(const char *file
      char *ret = NULL;
      char *srpm = NULL;
      rpmts ts;
@@ -121,7 +121,7 @@
  
      if (rpm_query_file(&ts, &iter, &header, filename, rootdir_or_NULL) < 0)
          return NULL;
-@@ -222,7 +224,7 @@ char* rpm_get_component(const char *file
+@@ -232,7 +234,7 @@ char* rpm_get_component(const char *file
          goto error;
  
      const char *errmsg = NULL;
@@ -130,7 +130,7 @@
      if (!srpm && errmsg)
      {
          error_msg("cannot get srpm. reason: %s", errmsg);
-@@ -233,8 +235,8 @@ char* rpm_get_component(const char *file
+@@ -243,8 +245,8 @@ char* rpm_get_component(const char *file
      free(srpm);
  
   error:
@@ -141,7 +141,7 @@
      return ret;
  }
  
-@@ -242,7 +244,7 @@ char* rpm_get_component(const char *file
+@@ -252,7 +254,7 @@ char* rpm_get_component(const char *file
      static inline int pkg_add_##name(Header header, struct pkg_envra *p) \
      {                                                                   \
          const char *errmsg = NULL;                                      \
@@ -150,7 +150,7 @@
          if (p->p_##name || !errmsg)                                     \
              return 0;                                                   \
                                                                          \
-@@ -261,8 +263,8 @@ pkg_add_id(arch);
+@@ -272,8 +274,8 @@ pkg_add_id(vendor);
  struct pkg_envra *rpm_get_package_nvr(const char *filename, const char *rootdir_or_NULL)
  {
      rpmts ts;
@@ -161,7 +161,7 @@
  
      struct pkg_envra *p = NULL;
  
-@@ -305,15 +307,15 @@ struct pkg_envra *rpm_get_package_nvr(co
+@@ -320,15 +322,15 @@ struct pkg_envra *rpm_get_package_nvr(co
  
      p->p_nvr = xasprintf("%s-%s-%s", p->p_name, p->p_version, p->p_release);
  

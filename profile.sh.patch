@@ -1,8 +1,0 @@
---- abrt-2.4.0/src/cli/abrt-console-notification.sh.orig	2015-02-26 16:03:12.122610204 +0100
-+++ abrt-2.4.0/src/cli/abrt-console-notification.sh	2015-02-26 16:10:23.795925422 +0100
-@@ -40,3 +40,5 @@
- fi
- 
- timeout 10s abrt-cli status --since="$SINCE" 2>"$ABRT_DEBUG_LOG" || echo "'abrt-cli status' timed out"
-+
-+unset ABRT_DEBUG_LOG LPATHDIR SINCEFILE TMPPATH SINCE
