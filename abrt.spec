@@ -51,7 +51,7 @@ BuildRequires:	python3-devel >= 3
 BuildRequires:	python3-modules >= 3
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.219
+BuildRequires:	rpmbuild(macros) >= 1.721
 BuildRequires:	satyr-devel >= 0.21
 BuildRequires:	systemd-devel
 BuildRequires:	xmlto
@@ -69,8 +69,6 @@ Obsoletes:	abrt-plugin-runapp
 Obsoletes:	abrt-plugin-sosreport
 Obsoletes:	abrt-plugin-sqlite3
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-%define	journal_catalog_update	[ ! -x /bin/journalctl ] || /bin/journalctl --update-catalog || :
 
 %description
 ABRT is a tool to help users to detect defects in applications and to
