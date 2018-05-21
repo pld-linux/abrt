@@ -11,17 +11,17 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.10.0
-Release:	3
+Version:	2.10.9
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
-Source0:	https://fedorahosted.org/released/abrt/%{name}-%{version}.tar.gz
-# Source0-md5:	050088fd550a8a063e2e21230b0588de
+Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	855f25bf30f4216e866db944da28aaf3
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		%{name}-link.patch
-URL:		https://fedorahosted.org/abrt/
+URL:		https://abrt.readthedocs.org/
 BuildRequires:	asciidoc
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
@@ -49,6 +49,7 @@ BuildRequires:	python-modules >= 2
 %{?with_tests:BuildRequires:	python-nose}
 BuildRequires:	python3-devel >= 3
 BuildRequires:	python3-modules >= 3
+BuildRequires:	python3-nose
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.721
@@ -491,13 +492,18 @@ się do powłoki.
 
 %{__sed} -n -e '/^%%changelog/,$p' abrt.spec.in | tail -n +2 > changelog
 
+echo -n %{version} > abrt-version
+
 %build
 %{__libtoolize}
+%{__gettextize}
+%{__intltoolize}
 %{__aclocal} -I m4
 %{__autoconf}
 %{__autoheader}
 %{__automake}
 %configure \
+	PYTHON_NOSE=/usr/bin/nosetests-3.6 \
 	--disable-silent-rules \
 	%{!?with_tests:--without-pythontests} \
 	--with-systemdsystemunitdir=%{systemdunitdir}
@@ -508,6 +514,7 @@ się do powłoki.
 rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
+	systemdsystemunitdir=%{systemdunitdir} \
 	pythondir=%{py_sitescriptdir} \
 	python3dir=%{py3_sitescriptdir}
 
@@ -663,7 +670,6 @@ fi
 %attr(755,root,root) %{_bindir}/abrt
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
-%attr(755,root,root) %{_bindir}/abrt-action-save-container-data
 %attr(755,root,root) %{_bindir}/abrt-action-save-package-data
 %attr(755,root,root) %{_bindir}/abrt-handle-upload
 %attr(755,root,root) %{_bindir}/abrt-watch-log
@@ -671,9 +677,10 @@ fi
 %attr(755,root,root) %{_sbindir}/abrt-server
 %attr(755,root,root) %{_sbindir}/abrtd
 %attr(755,root,root) %{_libexecdir}/abrt-action-generate-machine-id
+%attr(755,root,root) %{_libexecdir}/abrt-action-save-container-data
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
-%{py_sitedir}/abrtcli
+%{py3_sitedir}/abrtcli
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/conf.d
 %{_datadir}/%{name}/conf.d/abrt.conf
@@ -687,6 +694,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/gpg_keys.conf
 %dir %{_sysconfdir}/%{name}/plugins
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_event.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/machine-id_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/smart_event.conf
 %attr(754,root,root) /etc/rc.d/init.d/abrtd
 %{systemdunitdir}/abrtd.service
@@ -825,7 +833,9 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_python_format.conf
 %{_prefix}/lib/systemd/catalog/abrt_python.catalog
 %{py_sitedir}/abrt_exception_handler.py[co]
+%{py_sitedir}/abrt_exception_handler_container.py[co]
 %{py_sitedir}/abrt.pth
+%{py_sitedir}/abrt_container.pth
 %{_mandir}/man5/abrt-python.conf.5*
 %{_mandir}/man5/python_event.conf.5*
 
@@ -837,7 +847,9 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
 %{_prefix}/lib/systemd/catalog/abrt_python3.catalog
 %{py3_sitedir}/abrt_exception_handler3.py*
+%{py3_sitedir}/abrt_exception_handler3_container.py*
 %{py3_sitedir}/abrt3.pth
+%{py3_sitedir}/abrt3_container.pth
 %{_mandir}/man5/abrt-python3.conf.5*
 %{_mandir}/man5/python3_event.conf.5*
 
