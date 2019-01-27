@@ -88,6 +88,7 @@ Summary(pl.UTF-8):	Bashowe dopełnianie parametrów dla polecenia abrt
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion
+Requires:	python3-argcomplete
 %if "%{_rpmversion}" >= "5"
 BuildArch:	noarch
 %endif
