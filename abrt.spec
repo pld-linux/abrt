@@ -47,8 +47,8 @@ BuildRequires:	polkit-devel
 BuildRequires:	python-devel >= 2
 BuildRequires:	python-modules >= 2
 %{?with_tests:BuildRequires:	python-nose}
-BuildRequires:	python3-devel >= 3
-BuildRequires:	python3-modules >= 3
+BuildRequires:	python3-devel >= 1:3
+BuildRequires:	python3-modules >= 1:3
 BuildRequires:	python3-nose
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
