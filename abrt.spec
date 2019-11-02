@@ -2,7 +2,6 @@
 # TODO:
 # - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
-# - teach build system to use python3.2+ __pycache__
 #
 # Conditional build:
 %bcond_without	tests	# disable pythontests
@@ -12,7 +11,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.13.0
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
@@ -23,6 +22,7 @@ Patch1:		%{name}-rpm45.patch
 Patch2:		%{name}-link.patch
 URL:		https://abrt.readthedocs.org/
 BuildRequires:	asciidoc
+BuildRequires:	augeas
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
 BuildRequires:	dbus-devel
@@ -701,7 +701,7 @@ fi
 %{py3_sitedir}/abrt_exception_handler3_container.py*
 %{py3_sitedir}/abrt3.pth
 %{py3_sitedir}/abrt3_container.pth
-%{_libdir}/systemd/catalog/python3_abrt.catalog
+%{_prefix}/lib/systemd/catalog/python3_abrt.catalog
 %{_mandir}/man5/python3_event.conf.5*
 %{_mandir}/man5/python3-abrt.conf.5*
 
