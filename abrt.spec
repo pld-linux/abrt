@@ -7,16 +7,16 @@
 # Conditional build:
 %bcond_without	tests	# disable pythontests
 
-%define		libreport_ver	2.9.0
+%define		libreport_ver	2.10.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.10.9
-Release:	3
+Version:	2.13.0
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	855f25bf30f4216e866db944da28aaf3
+# Source0-md5:	4da66a03140254598e5d599a3c805b53
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -34,6 +34,7 @@ BuildRequires:	gtk+3-devel >= 3.0
 BuildRequires:	hawkey-devel
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
+BuildRequires:	libgomp-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libreport-devel >= %{libreport_ver}
 BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
@@ -44,12 +45,10 @@ BuildRequires:	libxml2-devel >= 2
 BuildRequires:	nss-devel
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
-BuildRequires:	python-devel >= 2
-BuildRequires:	python-modules >= 2
-%{?with_tests:BuildRequires:	python-nose}
 BuildRequires:	python3-devel >= 1:3
 BuildRequires:	python3-modules >= 1:3
 BuildRequires:	python3-nose
+%{?with_tests:BuildRequires:	python3-nose}
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.721
@@ -65,6 +64,9 @@ Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
 Provides:	group(abrt)
 Provides:	user(abrt)
+Obsoletes:	abrt-atomic < 2.13.0
+Obsoletes:	abrt-cli < 2.13.0
+Obsoletes:	abrt-coredump-helper < 2.13.0
 Obsoletes:	abrt-plugin-filetransfer
 Obsoletes:	abrt-plugin-runapp
 Obsoletes:	abrt-plugin-sosreport
@@ -131,14 +133,13 @@ Summary:	ABRT's C/C++ addon
 Summary(pl.UTF-8):	Dodatek C/C++ do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-addon-coredump-helper = %{version}-%{release}
 Requires:	%{name}-retrace-client = %{version}-%{release}
 Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
 Requires:	satyr >= 0.21
 Requires:	yum-utils
-Obsoletes:	%{name}-atomic
+Obsoletes:	abrt-atomic
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and abrt's C/C++
@@ -147,18 +148,6 @@ analyzer plugin.
 %description addon-ccpp -l pl.UTF-8
 Ten pakiet zawiera punkt zaczepienia dla programów w C/C++, które
 uległy awarii oraz wtyczkę analizatora C/C++ ABRT.
-
-%package addon-coredump-helper
-Summary:	ABRT's /proc/sys/kernel/core_pattern helper
-Summary(pl.UTF-8):	Program pomocniczy ABRT do /proc/sys/kernel/core_pattern
-Group:		Libraries
-Requires:	%{name}-libs = %{version}-%{release}
-
-%description addon-coredump-helper
-This package contains hook for C/C++ crashed programs.
-
-%description addon-coredump-helper -l pl.UTF-8
-Ten pakiet zawiera uchwyt dla programów w C/C++, które uległy awarii.
 
 %package addon-kerneloops
 Summary:	ABRT's kerneloops addon
@@ -193,27 +182,6 @@ storage.
 %description addon-pstoreoops -l pl.UTF-8
 Ten pakiet zawiera wtyczkę do zbierania oopsów jądra z danych pstore.
 
-%package addon-python
-Summary:	ABRT's addon for catching and analyzing Python 2 exceptions
-Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona 2
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-python = %{version}-%{release}
-# for detecting package name containing offending file
-Suggests:	python-rpm
-# for logging to journal
-Suggests:	python-systemd
-Obsoletes:	gnome-python2-bugbuddy
-
-%description addon-python
-This package contains Python hook and Python analyzer plugin for
-handling uncaught exception in Python 2 programs.
-
-%description addon-python -l pl.UTF-8
-Ten pakiet zawiera pythonowy punkt zaczepienia oraz wtyczkę
-analizatora Pythona do obsługi nie obsłużonych wyjątków w programach w
-Pythonie 2.
-
 %package addon-python3
 Summary:	ABRT's addon for catching and analyzing Python 3 exceptions
 Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona 3
@@ -222,8 +190,8 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-python3 = %{version}-%{release}
 # for detecting package name containing offending file (TODO: python3-rpm package)
 #Suggests:	python3-rpm
-# for logging to journal (TODO: python3-systemd package)
-#Suggests:	python3-systemd
+# for logging to journal
+Suggests:	python3-systemd
 
 %description addon-python3
 This package contains Python hook and Python analyzer plugin for
@@ -277,20 +245,6 @@ from Xorg log.
 Ten pakiet zawiera wtyczkę do zbierania informacji o awarii jądra z
 logu Xorg.
 
-%package atomic
-Summary:	Package to make easy default installation on Atomic hosts
-Summary(pl.UTF-8):	Pakiet ułatwiający domyślną instalację na hostach Atomic
-Group:		Applications/System
-Requires:	%{name}-addon-coredump-helper = %{version}-%{release}
-Obsoletes:	%{name}-addon-ccpp
-
-%description atomic
-Package to install all necessary packages for usage from Atomic hosts.
-
-%description atomic -l pl.UTF-8
-Pakiet służący do instalacji wszystkich wymaganych pakietów
-przeznaczonych do użycia z hostów Atomic.
-
 %package plugin-bodhi
 Summary:	ABRT's bodhi plugin
 Summary(pl.UTF-8):	Wtyczka bodhi do ABRT
@@ -336,21 +290,6 @@ Usługa DBus ABRT, udostępniająca poprzez DBus API
 org.freedesktop.problems, używająca PolicyKit do autoryzacji dostępu
 do danych o problemach.
 
-%package python
-Summary:	ABRT Python 2 API
-Summary(pl.UTF-8):	API Pythona 2 do ABRT
-Group:		Libraries/Python
-Requires:	%{name} = %{version}-%{release}
-Requires:	python-libreport >= %{libreport_ver}
-
-%description python
-High-level API for querying, creating and manipulating problems
-handled by ABRT in Python 2.
-
-%description python -l pl.UTF-8
-Wysokopoziomowe API do odpytywania, tworzenia i obróbki z poziomu
-Pythona 2 problemów obsługiwanych przez ABRT.
-
 %package python3
 Summary:	ABRT Python 3 API
 Summary(pl.UTF-8):	API Pythona 3 do ABRT
@@ -365,28 +304,6 @@ handled by ABRT in Python.
 %description python3 -l pl.UTF-8
 Wysokopoziomowe API do odpytywania, tworzenia i obróbki z poziomu
 Pythona 3 problemów obsługiwanych przez ABRT.
-
-%package cli
-Summary:	ABRT's command line interface
-Summary(pl.UTF-8):	Interfejs linii poleceń ABRT
-Group:		Applications/System
-Requires:	%{name} = %{version}-%{release}
-# analyzers
-Requires:	%{name}-addon-ccpp = %{version}-%{release}
-Requires:	%{name}-addon-kerneloops = %{version}-%{release}
-Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
-Requires:	%{name}-addon-python = %{version}-%{release}
-# reporters
-Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
-Requires:	libreport-plugin-logger >= %{libreport_ver}
-
-%description cli
-This package contains simple command line client for controling ABRT
-daemon over the sockets.
-
-%description cli -l pl.UTF-8
-Ten pakiet zawiera prostego klienta obsługiwanego z linii poleceń,
-pozwalającego na sterowanie demonem poprzez gniazda.
 
 %package gui
 Summary:	ABRT's GUI
@@ -447,7 +364,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-addon-ccpp = %{version}-%{release}
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
 Requires:	%{name}-addon-pstoreoops = %{version}-%{release}
-Requires:	%{name}-addon-python = %{version}-%{release}
+Requires:	%{name}-addon-python3 = %{version}-%{release}
 Requires:	%{name}-addon-vmcore = %{version}-%{release}
 Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
@@ -516,10 +433,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
 	systemdsystemunitdir=%{systemdunitdir} \
-	pythondir=%{py_sitescriptdir} \
 	python3dir=%{py3_sitescriptdir}
-
-%py_postclean
 
 # obsoleted by pkg-config
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/lib*.la
@@ -534,10 +448,8 @@ cat > $RPM_BUILD_ROOT%{systemdtmpfilesdir}/abrt.conf <<EOF
 d /var/run/%{name} 0755 root root -
 EOF
 
-%{__rm} $RPM_BUILD_ROOT%{py_sitedir}/problem/*.la
 %{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/problem/*.la
 # examples
-%{__rm} -r $RPM_BUILD_ROOT%{py_sitescriptdir}/problem_examples
 %{__rm} -r $RPM_BUILD_ROOT%{py3_sitescriptdir}/problem_examples
 # packaged as %doc
 %{__rm} $RPM_BUILD_ROOT%{_docdir}/abrt/README.md
@@ -602,9 +514,6 @@ fi
 %preun addon-pstoreoops
 %systemd_preun abrt-pstoreoops.service
 
-%post addon-python
-%journal_catalog_update
-
 %post addon-python3
 %journal_catalog_update
 
@@ -627,34 +536,6 @@ fi
 
 %preun addon-xorg
 %systemd_preun abrt-xorg.service
-
-%post atomic
-if [ -f %{_sysconfdir}/%{name}/plugins/CCpp.conf ]; then
-	mv -f %{_sysconfdir}/%{name}/plugins/CCpp.conf %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic || exit 1
-fi
-ln -sf %{_sysconfdir}/%{name}/plugins/CCpp_Atomic.conf %{_sysconfdir}/%{name}/plugins/CCpp.conf
-if [ -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf ]; then
-	mv -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic || exit 1;
-fi
-ln -sf %{_datadir}/%{name}/conf.d/plugins/CCpp_Atomic.conf %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
-%systemd_post abrt-coredump-helper.service
-
-%preun atomic
-if [ -L %{_sysconfdir}/%{name}/plugins/CCpp.conf ]; then
-	rm -f %{_sysconfdir}/%{name}/plugins/CCpp.conf
-fi
-if [ -L %{_datadir}/%{name}/conf.d/plugins/CCpp.conf ]; then
-	rm -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf
-fi
-if [ -f %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic ]; then
-	mv -f %{_sysconfdir}/%{name}/plugins/CCpp.conf.rpmsave.atomic %{_sysconfdir}/%{name}/plugins/CCpp.conf || exit 1
-fi
-if [ -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic ]; then
-	mv -f %{_datadir}/%{name}/conf.d/plugins/CCpp.conf.rpmsave.atomic %{_datadir}/%{name}/conf.d/plugins/CCpp.conf || exit 1
-fi
-
-%postun atomic
-%systemd_postun_with_restart abrt-coredump-helper.service
 
 %post gui
 %update_icon_cache hicolor
@@ -683,11 +564,6 @@ fi
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
 %{py3_sitedir}/abrtcli
 %dir %{_datadir}/%{name}
-%dir %{_datadir}/%{name}/conf.d
-%{_datadir}/%{name}/conf.d/abrt.conf
-%{_datadir}/%{name}/conf.d/abrt-action-save-package-data.conf
-%{_datadir}/%{name}/conf.d/gpg_keys.conf
-%dir %{_datadir}/%{name}/conf.d/plugins
 %{_datadir}/augeas/lenses/abrt.aug
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/abrt.conf
@@ -697,6 +573,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/machine-id_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/smart_event.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/sosreport_event.conf
 %attr(754,root,root) /etc/rc.d/init.d/abrtd
 %{systemdunitdir}/abrtd.service
 %attr(775,root,abrt) %dir /var/cache/%{name}
@@ -713,6 +590,7 @@ fi
 %{_mandir}/man5/abrt.conf.5*
 %{_mandir}/man5/abrt-action-save-package-data.conf.5*
 %{_mandir}/man5/abrt_event.conf.5*
+%{_mandir}/man5/report_event.conf.5
 %{_mandir}/man5/gpg_keys.conf.5*
 %{_mandir}/man5/smart_event.conf.5*
 %{_mandir}/man8/abrtd.8*
@@ -752,12 +630,10 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-core
 %attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
-%{_datadir}/%{name}/conf.d/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/gconf_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/vimrc_event.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_ccpp_format.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_journal_ccpp_format.conf
 %attr(775,abrt,abrt) %dir %{_localstatedir}/cache/abrt-di
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-ccpp
@@ -768,9 +644,7 @@ fi
 %{_datadir}/libreport/events/collect_vimrc_user.xml
 %{_datadir}/libreport/events/collect_xsession_errors.xml
 %{_datadir}/libreport/events/post_report.xml
-%{systemdunitdir}/abrt-ccpp.service
 %{systemdunitdir}/abrt-journal-core.service
-%{_prefix}/lib/systemd/catalog/abrt_ccpp.catalog
 %{_mandir}/man1/abrt-action-analyze-backtrace.1*
 %{_mandir}/man1/abrt-action-analyze-c.1*
 %{_mandir}/man1/abrt-action-analyze-ccpp-local.1*
@@ -789,12 +663,6 @@ fi
 %{_mandir}/man5/gconf_event.conf.5*
 %{_mandir}/man5/vimrc_event.conf.5*
 
-%files addon-coredump-helper
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_sbindir}/abrt-install-ccpp-hook
-%attr(755,root,root) %{_libexecdir}/abrt-hook-ccpp
-%{_mandir}/man1/abrt-install-ccpp-hook.1*
-
 %files addon-kerneloops
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-oops
@@ -802,11 +670,9 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-check-oops-for-hw-error
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-oops
 %attr(755,root,root) %{_bindir}/abrt-dump-oops
-%{_datadir}/%{name}/conf.d/plugins/oops.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/koops_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_koops_format.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/oops.conf
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.oops.xml
 #%attr(754,root,root) /etc/rc.d/init.d/abrt-oops
 %{systemdunitdir}/abrt-oops.service
 %{_prefix}/lib/systemd/catalog/abrt_koops.catalog
@@ -826,33 +692,18 @@ fi
 %{_mandir}/man1/abrt-harvest-pstoreoops.1*
 %{_mandir}/man1/abrt-merge-pstoreoops.1*
 
-%files addon-python
-%defattr(644,root,root,755)
-%{_datadir}/%{name}/conf.d/plugins/python.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python_event.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_python_format.conf
-%{_prefix}/lib/systemd/catalog/abrt_python.catalog
-%{py_sitedir}/abrt_exception_handler.py[co]
-%{py_sitedir}/abrt_exception_handler_container.py[co]
-%{py_sitedir}/abrt.pth
-%{py_sitedir}/abrt_container.pth
-%{_mandir}/man5/abrt-python.conf.5*
-%{_mandir}/man5/python_event.conf.5*
-
 %files addon-python3
 %defattr(644,root,root,755)
-%{_datadir}/%{name}/conf.d/plugins/python3.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python3.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python3_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
-%{_prefix}/lib/systemd/catalog/abrt_python3.catalog
 %{py3_sitedir}/abrt_exception_handler3.py*
 %{py3_sitedir}/abrt_exception_handler3_container.py*
 %{py3_sitedir}/abrt3.pth
 %{py3_sitedir}/abrt3_container.pth
-%{_mandir}/man5/abrt-python3.conf.5*
+%{_libdir}/systemd/catalog/python3_abrt.catalog
 %{_mandir}/man5/python3_event.conf.5*
+%{_mandir}/man5/python3-abrt.conf.5*
 
 %files addon-upload-watch
 %defattr(644,root,root,755)
@@ -864,7 +715,6 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-vmcore
 %attr(755,root,root) %{_sbindir}/abrt-harvest-vmcore
-%dir %{_datadir}/%{name}/conf.d/plugins/vmcore.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/vmcore.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/vmcore_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_vmcore_format.conf
@@ -882,7 +732,6 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-xorg
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-xorg
 %attr(755,root,root) %{_bindir}/abrt-dump-xorg
-%dir %{_datadir}/%{name}/conf.d/plugins/xorg.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/xorg.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/xorg_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_xorg_format.conf
@@ -894,12 +743,6 @@ fi
 %{_mandir}/man1/abrt-dump-xorg.1*
 %{_mandir}/man5/abrt-xorg.conf.5*
 %{_mandir}/man5/xorg_event.conf.5*
-
-%files atomic
-%defattr(644,root,root,755)
-%{_datadir}/%{name}/conf.d/plugins/CCpp_Atomic.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp_Atomic.conf
-%{systemdunitdir}/abrt-coredump-helper.service
 
 %files plugin-bodhi
 %defattr(644,root,root,755)
@@ -919,57 +762,38 @@ fi
 
 %files dbus
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_sbindir}/abrt-configuration
 %attr(755,root,root) %{_sbindir}/abrt-dbus
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_dbus_event.conf
 /etc/dbus-1/system.d/dbus-abrt.conf
 /etc/dbus-1/system.d/org.freedesktop.problems.daemon.conf
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.abrt.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.ccpp.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.python.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.vmcore.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xml
-%{_datadir}/dbus-1/interfaces/com.redhat.problems.configuration.xorg.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Entry.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Session.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.Problems2.Task.xml
-%{_datadir}/dbus-1/system-services/com.redhat.problems.configuration.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.problems.service
 %{_datadir}/polkit-1/actions/abrt_polkit.policy
-%{_mandir}/man8/abrt-configuration.8*
 %{_mandir}/man8/abrt-dbus.8*
 %{_docdir}/abrt-dbus-%{version}
-
-%files python
-%defattr(644,root,root,755)
-%dir %{py_sitedir}/problem
-%attr(755,root,root) %{py_sitedir}/problem/_pyabrt.so
-%{py_sitedir}/problem/*.py[co]
-%{_mandir}/man5/abrt-python.5*
 
 %files python3
 %defattr(644,root,root,755)
 %dir %{py3_sitedir}/problem
 %attr(755,root,root) %{py3_sitedir}/problem/_py3abrt.so
 %{py3_sitedir}/problem/*.py*
-%{_mandir}/man5/abrt-python3.5*
-
-%files cli
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/abrt-cli
-%{_mandir}/man1/abrt-cli.1*
+%{py3_sitedir}/__pycache__
+%{py3_sitedir}/problem/__pycache__
+%{_mandir}/man5/python3-abrt.5*
 
 %files gui
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/abrt-applet
 %attr(755,root,root) %{_bindir}/system-config-abrt
 %dir %{_datadir}/%{name}
-%{_datadir}/%{name}/icons
 %{_datadir}/%{name}/ui
-%{_iconsdir}/hicolor/*/apps/abrt.png
-%{_iconsdir}/hicolor/*/status/abrt.png
-%{_sysconfdir}/xdg/autostart/abrt-applet.desktop
+%{_iconsdir}/hicolor/scalable/apps/abrt.svg
+%{_iconsdir}/hicolor/symbolic/apps/abrt-symbolic.svg
+%{_sysconfdir}/xdg/autostart/org.freedesktop.problems.applet.desktop
+%{_datadir}/dbus-1/services/org.freedesktop.problems.applet.service
 %{_mandir}/man1/abrt-applet.1*
 %{_mandir}/man1/system-config-abrt.1*
 
