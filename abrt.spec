@@ -11,7 +11,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.13.0
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
@@ -389,7 +389,6 @@ Summary:	ABRT console notification script
 Summary(pl.UTF-8):	Skrypt ABRT do powiadomień na konsoli
 Group:		Applications/System
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-cli = %{version}-%{release}
 
 %description console-notification
 A small script which prints a count of detected problems when someone
