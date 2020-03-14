@@ -1,6 +1,5 @@
 #
 # TODO:
-# - handle obsolete packages: abrt-plugin-{catcut,rhfastcheck,rhticket,ticketuploader}
 # - SysV init scripts for -addon-ccpp, -addon-kerneloops, -addon-pstoreoops, -addon-upload-watch, -addon-vmcore, -addon-xorg
 #
 # Conditional build:
@@ -10,50 +9,51 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.13.0
-Release:	3
+Version:	2.14.0
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
+#Source0Download: https://github.com/abrt/abrt/releases
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	4da66a03140254598e5d599a3c805b53
+# Source0-md5:	96c227237c9d66107f3bc62b5921b8c2
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		%{name}-link.patch
 URL:		https://abrt.readthedocs.org/
 BuildRequires:	asciidoc
-BuildRequires:	augeas
+%{?with_tests:BuildRequires:	augeas}
 BuildRequires:	autoconf >= 2.50
 BuildRequires:	automake
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	gettext-tools >= 0.17
-BuildRequires:	glib2-devel >= 1:2.43
+BuildRequires:	glib2-devel >= 1:2.55.1
 BuildRequires:	gsettings-desktop-schemas-devel >= 3.15.1
 BuildRequires:	gtk+3-devel >= 3.0
-BuildRequires:	hawkey-devel
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
+BuildRequires:	libcap-devel
 BuildRequires:	libgomp-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libreport-devel >= %{libreport_ver}
 BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
 BuildRequires:	libreport-web-devel >= %{libreport_ver}
 BuildRequires:	libselinux-devel
+BuildRequires:	libsoup-devel >= 2.4
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
-BuildRequires:	nss-devel
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
-BuildRequires:	python3-devel >= 1:3
-BuildRequires:	python3-modules >= 1:3
-BuildRequires:	python3-nose
+BuildRequires:	python3-devel >= 1:3.6
+BuildRequires:	python3-modules >= 1:3.6
 %{?with_tests:BuildRequires:	python3-nose}
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.721
 BuildRequires:	satyr-devel >= 0.21
-BuildRequires:	systemd-devel
+BuildRequires:	sphinx-pdg-3
+BuildRequires:	systemd-devel >= 1:209
 BuildRequires:	xmlto
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -64,13 +64,18 @@ Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
 Provides:	group(abrt)
 Provides:	user(abrt)
+Obsoletes:	abrt-addon-coredump-helper < 2.13.0
+Obsoletes:	abrt-addon-python < 2.13.0
 Obsoletes:	abrt-atomic < 2.13.0
 Obsoletes:	abrt-cli < 2.13.0
-Obsoletes:	abrt-coredump-helper < 2.13.0
+Obsoletes:	abrt-plugin-catcut
 Obsoletes:	abrt-plugin-filetransfer
+Obsoletes:	abrt-plugin-rhfastcheck
+Obsoletes:	abrt-plugin-rhticket
 Obsoletes:	abrt-plugin-runapp
 Obsoletes:	abrt-plugin-sosreport
 Obsoletes:	abrt-plugin-sqlite3
+Obsoletes:	abrt-plugin-ticketuploader
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -105,7 +110,7 @@ Bashowe dopełnianie parametrów dla polecenia abrt.
 Summary:	ABRT shared library
 Summary(pl.UTF-8):	Biblioteka współdzielona ABRT
 Group:		Libraries
-Requires:	glib2 >= 1:2.43
+Requires:	glib2 >= 1:2.55.1
 Requires:	libreport >= %{libreport_ver}
 
 %description libs
@@ -119,7 +124,7 @@ Summary:	Header files for ABRT livrary
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotekia ABRT
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	glib2-devel >= 1:2.43
+Requires:	glib2-devel >= 1:2.55.1
 Requires:	libreport-devel >= %{libreport_ver}
 
 %description devel
@@ -296,6 +301,7 @@ Summary(pl.UTF-8):	API Pythona 3 do ABRT
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
 Requires:	python3-libreport >= %{libreport_ver}
+Obsoletes:	abrt-python < 2.13.0
 
 %description python3
 High-level API for querying, creating and manipulating problems
@@ -420,7 +426,10 @@ echo -n %{version} > abrt-version
 %{__autoheader}
 %{__automake}
 %configure \
-	PYTHON_NOSE=/usr/bin/nosetests-3.6 \
+	AUGPARSE=/usr/bin/augparse \
+	PYTHON_NOSE=/usr/bin/nosetests-%{py3_ver} \
+	--enable-dump-time-unwind \
+	--enable-native-unwinder \
 	--disable-silent-rules \
 	%{!?with_tests:--without-pythontests} \
 	--with-systemdsystemunitdir=%{systemdunitdir}
@@ -455,11 +464,6 @@ EOF
 
 # fool man verification - report_event.conf.5 belongs to libreport (NOTE: don't package it here)
 touch $RPM_BUILD_ROOT%{_mandir}/man5/report_event.conf.5
-
-# empty version of nb,ru
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{no,ru_RU}
-# not supported by glibc yet
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{ach,aln,bal,ilo}
 
 %find_lang %{name}
 
@@ -561,7 +565,7 @@ fi
 %attr(755,root,root) %{_libexecdir}/abrt-action-save-container-data
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
 %attr(755,root,root) %{_libexecdir}/abrt-handle-event
-%{py3_sitedir}/abrtcli
+%{py3_sitescriptdir}/abrtcli
 %dir %{_datadir}/%{name}
 %{_datadir}/augeas/lenses/abrt.aug
 %dir %{_sysconfdir}/%{name}
@@ -644,6 +648,7 @@ fi
 %{_datadir}/libreport/events/collect_xsession_errors.xml
 %{_datadir}/libreport/events/post_report.xml
 %{systemdunitdir}/abrt-journal-core.service
+%{_prefix}/lib/systemd/catalog/abrt_ccpp.catalog
 %{_mandir}/man1/abrt-action-analyze-backtrace.1*
 %{_mandir}/man1/abrt-action-analyze-c.1*
 %{_mandir}/man1/abrt-action-analyze-ccpp-local.1*
@@ -696,10 +701,11 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/python3.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/python3_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/plugins/catalog_python3_format.conf
-%{py3_sitedir}/abrt_exception_handler3.py*
-%{py3_sitedir}/abrt_exception_handler3_container.py*
-%{py3_sitedir}/abrt3.pth
-%{py3_sitedir}/abrt3_container.pth
+%{py3_sitescriptdir}/abrt_exception_handler3.py*
+%{py3_sitescriptdir}/abrt_exception_handler3_container.py*
+%{py3_sitescriptdir}/abrt3.pth
+%{py3_sitescriptdir}/abrt3_container.pth
+%{py3_sitescriptdir}/__pycache__/abrt_exception_handler3*.cpython-*.py[co]
 %{_prefix}/lib/systemd/catalog/python3_abrt.catalog
 %{_mandir}/man5/python3_event.conf.5*
 %{_mandir}/man5/python3-abrt.conf.5*
@@ -779,7 +785,6 @@ fi
 %dir %{py3_sitedir}/problem
 %attr(755,root,root) %{py3_sitedir}/problem/_py3abrt.so
 %{py3_sitedir}/problem/*.py*
-%{py3_sitedir}/__pycache__
 %{py3_sitedir}/problem/__pycache__
 %{_mandir}/man5/python3-abrt.5*
 
