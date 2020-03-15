@@ -1,0 +1,11 @@
+--- abrt-2.14.0/init-scripts/abrtd.service.orig	2020-02-07 11:21:43.000000000 +0100
++++ abrt-2.14.0/init-scripts/abrtd.service	2020-03-15 13:56:39.077440120 +0100
+@@ -8,7 +8,7 @@
+ [Service]
+ Type=dbus
+ BusName=org.freedesktop.problems.daemon
+-ExecStartPre=/usr/bin/bash -c "pkill abrt-dbus || :"
++ExecStartPre=/bin/bash -c "pkill abrt-dbus || :"
+ ExecStart=/usr/sbin/abrtd -d -s
+ 
+ [Install]

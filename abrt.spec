@@ -10,7 +10,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.14.0
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
@@ -20,6 +20,7 @@ Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
 Patch2:		%{name}-link.patch
+Patch3:		%{name}-split-usr.patch
 URL:		https://abrt.readthedocs.org/
 BuildRequires:	asciidoc
 %{?with_tests:BuildRequires:	augeas}
@@ -412,6 +413,7 @@ się do powłoki.
 %patch1 -p1
 %endif
 %patch2 -p1
+%patch3 -p1
 
 %{__sed} -n -e '/^%%changelog/,$p' abrt.spec.in | tail -n +2 > changelog
 
