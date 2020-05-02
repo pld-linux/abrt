@@ -9,13 +9,13 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.14.0
-Release:	2
+Version:	2.14.1
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	96c227237c9d66107f3bc62b5921b8c2
+# Source0-md5:	5b1e164ee1f705ca7000b37083775d52
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -49,6 +49,7 @@ BuildRequires:	polkit-devel
 BuildRequires:	python3-devel >= 1:3.6
 BuildRequires:	python3-modules >= 1:3.6
 %{?with_tests:BuildRequires:	python3-nose}
+%{?with_tests:BuildRequires:	python3-pytest}
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.721
