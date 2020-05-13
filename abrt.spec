@@ -5,17 +5,17 @@
 # Conditional build:
 %bcond_without	tests	# disable pythontests
 
-%define		libreport_ver	2.10.0
+%define		libreport_ver	2.13.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.14.1
+Version:	2.14.2
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5b1e164ee1f705ca7000b37083775d52
+# Source0-md5:	5f085a2096e41a8d96e085f1fe823a9b
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -98,7 +98,7 @@ Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion
 Requires:	python3-argcomplete
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -554,7 +554,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc README.md changelog
+%doc CHANGELOG.md README.md changelog
 %attr(755,root,root) %{_bindir}/abrt
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-python
 %attr(755,root,root) %{_bindir}/abrt-action-notify
