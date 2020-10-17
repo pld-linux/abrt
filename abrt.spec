@@ -9,13 +9,13 @@
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.14.2
+Version:	2.14.4
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5f085a2096e41a8d96e085f1fe823a9b
+# Source0-md5:	c7583c001464cb2ec0067afb08cdc6cb
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-rpm45.patch
@@ -34,7 +34,6 @@ BuildRequires:	gsettings-desktop-schemas-devel >= 3.15.1
 BuildRequires:	gtk+3-devel >= 3.0
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	json-c-devel
-BuildRequires:	libcap-devel
 BuildRequires:	libgomp-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libreport-devel >= %{libreport_ver}
@@ -52,7 +51,7 @@ BuildRequires:	python3-modules >= 1:3.6
 %{?with_tests:BuildRequires:	python3-pytest}
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.721
+BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	satyr-devel >= 0.21
 BuildRequires:	sphinx-pdg-3
 BuildRequires:	systemd-devel >= 1:209
@@ -98,9 +97,7 @@ Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion
 Requires:	python3-argcomplete
-%if "%{_rpmversion}" >= "4.6"
-BuildArch:	noarch
-%endif
+%{?noarchpackage}
 
 %description -n bash-completion-abrt
 Bash completion for abrt command.
