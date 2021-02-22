@@ -4,13 +4,14 @@
 #
 # Conditional build:
 %bcond_without	tests	# disable pythontests
+%bcond_with	rpm5	# build with rpm5
 
 %define		libreport_ver	2.13.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.14.4
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
@@ -18,7 +19,6 @@ Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.
 # Source0-md5:	c7583c001464cb2ec0067afb08cdc6cb
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
-Patch1:		%{name}-rpm45.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-split-usr.patch
 URL:		https://abrt.readthedocs.org/
@@ -192,8 +192,8 @@ Summary(pl.UTF-8):	Dodatek ABRT do przechwytywania i analizy wyjątków Pythona 
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-python3 = %{version}-%{release}
-# for detecting package name containing offending file (TODO: python3-rpm package)
-#Suggests:	python3-rpm
+# for detecting package name containing offending file
+%{!?with_rpm5:Suggests:	python3-rpm}
 # for logging to journal
 Suggests:	python3-systemd
 
@@ -405,11 +405,7 @@ się do powłoki.
 
 %prep
 %setup -q
-%if "%{_rpmversion}" >= "5.0"
-%patch0 -p1
-%else
-%patch1 -p1
-%endif
+%{?with_rpm5:%patch0 -p1}
 %patch2 -p1
 %patch3 -p1
 
