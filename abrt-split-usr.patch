@@ -1,6 +1,6 @@
 diff -urNp -x '*.orig' abrt-2.14.4.org/init-scripts/abrtd.service abrt-2.14.4/init-scripts/abrtd.service
 --- abrt-2.14.4.org/init-scripts/abrtd.service	2020-08-17 16:37:07.000000000 +0200
-+++ abrt-2.14.4/init-scripts/abrtd.service	2021-03-02 22:01:52.017997070 +0100
++++ abrt-2.14.4/init-scripts/abrtd.service	2021-03-02 22:08:20.735740151 +0100
 @@ -8,7 +8,7 @@ After=livesys.service
  [Service]
  Type=dbus

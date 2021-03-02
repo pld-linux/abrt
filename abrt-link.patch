@@ -1,7 +1,8 @@
---- abrt-2.1.6/src/configuration-gui/Makefile.am.orig	2013-07-23 10:10:02.000000000 +0200
-+++ abrt-2.1.6/src/configuration-gui/Makefile.am	2013-09-04 21:05:02.383074111 +0200
-@@ -18,6 +18,7 @@
- libabrtconfigui_la_LIBADD = \
+diff -urNp -x '*.orig' abrt-2.14.4.org/src/configuration-gui/Makefile.am abrt-2.14.4/src/configuration-gui/Makefile.am
+--- abrt-2.14.4.org/src/configuration-gui/Makefile.am	2020-08-17 16:37:07.000000000 +0200
++++ abrt-2.14.4/src/configuration-gui/Makefile.am	2021-03-02 22:08:20.452408463 +0100
+@@ -36,6 +36,7 @@ libabrt_gui_la_LIBADD = \
+ 	../lib/libabrt.la \
  	$(GLIB_LIBS) \
  	$(GTK_LIBS) \
 +	../lib/libabrt.la \
