@@ -97,7 +97,7 @@ Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion
 Requires:	python3-argcomplete
-%{?noarchpackage}
+BuildArch:	noarch
 
 %description -n bash-completion-abrt
 Bash completion for abrt command.
