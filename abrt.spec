@@ -49,6 +49,7 @@ BuildRequires:	python3-devel >= 1:3.6
 BuildRequires:	python3-modules >= 1:3.6
 %{?with_tests:BuildRequires:	python3-nose}
 %{?with_tests:BuildRequires:	python3-pytest}
+BuildRequires:	rpm-build >= 4.6
 BuildRequires:	rpm-devel >= 4.5-28
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.752
@@ -69,14 +70,14 @@ Obsoletes:	abrt-addon-coredump-helper < 2.13.0
 Obsoletes:	abrt-addon-python < 2.13.0
 Obsoletes:	abrt-atomic < 2.13.0
 Obsoletes:	abrt-cli < 2.13.0
-Obsoletes:	abrt-plugin-catcut
-Obsoletes:	abrt-plugin-filetransfer
-Obsoletes:	abrt-plugin-rhfastcheck
-Obsoletes:	abrt-plugin-rhticket
-Obsoletes:	abrt-plugin-runapp
-Obsoletes:	abrt-plugin-sosreport
-Obsoletes:	abrt-plugin-sqlite3
-Obsoletes:	abrt-plugin-ticketuploader
+Obsoletes:	abrt-plugin-catcut < 2.1
+Obsoletes:	abrt-plugin-filetransfer < 2.1
+Obsoletes:	abrt-plugin-rhfastcheck < 2.1
+Obsoletes:	abrt-plugin-rhticket < 2.1
+Obsoletes:	abrt-plugin-runapp < 2.1
+Obsoletes:	abrt-plugin-sosreport < 2.1
+Obsoletes:	abrt-plugin-sqlite3 < 1.0.7
+Obsoletes:	abrt-plugin-ticketuploader < 2.1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -143,7 +144,7 @@ Requires:	elfutils
 Requires:	gdb >= 7.0-3
 Requires:	satyr >= 0.21
 Requires:	yum-utils
-Obsoletes:	abrt-atomic
+Obsoletes:	abrt-atomic < 2.13
 
 %description addon-ccpp
 This package contains hook for C/C++ crashed programs and abrt's C/C++
@@ -160,9 +161,9 @@ Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	curl
 Requires:	libreport-plugin-kerneloops >= %{libreport_ver}
-Obsoletes:	abrt-plugin-kerneloops
-Obsoletes:	abrt-plugin-kerneloopsreporter
-Obsoletes:	kerneloops
+Obsoletes:	abrt-plugin-kerneloops < 0.0.7.2
+Obsoletes:	abrt-plugin-kerneloopsreporter < 1.0.7
+Obsoletes:	kerneloops < 0.0.7.2
 
 %description addon-kerneloops
 This package contains plugin for collecting kernel crash information
@@ -177,7 +178,7 @@ Summary:	ABRT's pstoreoops addon
 Summary(pl.UTF-8):	Dodatek pstoreoops do ABRT
 Group:		Libraries
 Requires:	%{name}-addon-kerneloops = %{version}-%{release}
-Obsoletes:	abrt-addon-uefioops
+Obsoletes:	abrt-addon-uefioops < 2.1.7
 
 %description addon-pstoreoops
 This package contains plugin for collecting kernel oopses from pstore
@@ -255,7 +256,7 @@ Summary(pl.UTF-8):	Wtyczka bodhi do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	libreport-web >= %{libreport_ver}
-Obsoletes:	libreport-plugin-bodhi
+Obsoletes:	libreport-plugin-bodhi < 2.0.16
 
 %description plugin-bodhi
 Plugin to search for a new updates in bodhi server.
@@ -379,7 +380,7 @@ Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
 Requires:	libreport-plugin-logger >= %{libreport_ver}
 Requires:	libreport-plugin-ureport >= %{libreport_ver}
 Provides:	bug-buddy
-Obsoletes:	bug-buddy
+Obsoletes:	bug-buddy < 2.33
 
 %description desktop
 Virtual package to make easy default installation on desktop
