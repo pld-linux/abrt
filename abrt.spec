@@ -11,7 +11,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.14.4
-Release:	4
+Release:	5
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
@@ -143,7 +143,6 @@ Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
 Requires:	satyr >= 0.21
-Requires:	yum-utils
 Obsoletes:	abrt-atomic < 2.13
 
 %description addon-ccpp
