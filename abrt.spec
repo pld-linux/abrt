@@ -6,26 +6,27 @@
 %bcond_without	tests	# disable pythontests
 %bcond_with	rpm5	# build with rpm5
 
-%define		libreport_ver	2.13.0
+%define		libreport_ver	2.17.0
 Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
-Version:	2.14.4
-Release:	8
+Version:	2.17.5
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
 Source0:	https://github.com/abrt/abrt/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	c7583c001464cb2ec0067afb08cdc6cb
+# Source0-md5:	3844c4c81019f573fe1e7db9cbe05b52
 Source1:	%{name}.init
 Patch0:		%{name}-rpm5.patch
+Patch1:		%{name}-rpm.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-split-usr.patch
 URL:		https://abrt.readthedocs.org/
 BuildRequires:	asciidoc
 %{?with_tests:BuildRequires:	augeas}
 BuildRequires:	autoconf >= 2.50
-BuildRequires:	automake
+BuildRequires:	automake >= 1:1.11
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	gettext-tools >= 0.17
@@ -40,14 +41,13 @@ BuildRequires:	libreport-devel >= %{libreport_ver}
 BuildRequires:	libreport-gtk-devel >= %{libreport_ver}
 BuildRequires:	libreport-web-devel >= %{libreport_ver}
 BuildRequires:	libselinux-devel
-BuildRequires:	libsoup-devel >= 2.4
+BuildRequires:	libsoup3-devel >= 3.0
 BuildRequires:	libtool
 BuildRequires:	libxml2-devel >= 2
 BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	python3-devel >= 1:3.6
 BuildRequires:	python3-modules >= 1:3.6
-%{?with_tests:BuildRequires:	python3-nose}
 %{?with_tests:BuildRequires:	python3-pytest}
 BuildRequires:	rpm-build >= 4.6
 BuildRequires:	rpm-devel >= 4.5-28
@@ -78,6 +78,8 @@ Obsoletes:	abrt-plugin-runapp < 2.1
 Obsoletes:	abrt-plugin-sosreport < 2.1
 Obsoletes:	abrt-plugin-sqlite3 < 1.0.7
 Obsoletes:	abrt-plugin-ticketuploader < 2.1
+Obsoletes:	abrt-retrace-client < 2.16
+Obsoletes:	bash-completion-abrt < 2.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -90,21 +92,6 @@ ABRT to narzędzie pomagające użytkownikom w wykrywaniu defektów w
 aplikacjach oraz tworzeniu raportów błędów ze wszystkimi informacjami
 potrzebnymi utrzymującemu pakiet do poprawienia go. Wykorzystuje
 system wtyczek do rozszerzania funkcjonalności.
-
-%package -n bash-completion-abrt
-Summary:	Bash completion for abrt command
-Summary(pl.UTF-8):	Bashowe dopełnianie parametrów dla polecenia abrt
-Group:		Applications/Shells
-Requires:	%{name} = %{version}-%{release}
-Requires:	bash-completion
-Requires:	python3-argcomplete
-BuildArch:	noarch
-
-%description -n bash-completion-abrt
-Bash completion for abrt command.
-
-%description -n bash-completion-abrt -l pl.UTF-8
-Bashowe dopełnianie parametrów dla polecenia abrt.
 
 %package libs
 Summary:	ABRT shared library
@@ -138,7 +125,6 @@ Summary:	ABRT's C/C++ addon
 Summary(pl.UTF-8):	Dodatek C/C++ do ABRT
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-retrace-client = %{version}-%{release}
 Requires:	cpio
 Requires:	elfutils
 Requires:	gdb >= 7.0-3
@@ -263,21 +249,6 @@ Plugin to search for a new updates in bodhi server.
 %description plugin-bodhi -l pl.UTF-8
 Wtyczka do wyszukiwania nowych uaktualnień na serwerze bodhi.
 
-%package retrace-client
-Summary:	ABRT's retrace client
-Summary(pl.UTF-8):	Klient Retrace dla ABRT
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	xz
-
-%description retrace-client
-This package contains the client application for Retrace server which
-is able to analyze C/C++ crashes remotely.
-
-%description retrace-client -l pl.UTF-8
-Ten pakiet zawiera aplikację kliencką dla serwera Retrace, który
-potrafi zdalnie przeanalizować awarię programu w C/C++.
-
 %package dbus
 Summary:	ABRT DBus service
 Summary(pl.UTF-8):	Usługa DBus ABRT
@@ -374,7 +345,6 @@ Requires:	%{name}-addon-vmcore = %{version}-%{release}
 Requires:	%{name}-addon-xorg = %{version}-%{release}
 Requires:	%{name}-gui = %{version}-%{release}
 Requires:	%{name}-plugin-bodhi = %{version}-%{release}
-Requires:	%{name}-retrace-client = %{version}-%{release}
 Requires:	libreport-plugin-bugzilla >= %{libreport_ver}
 Requires:	libreport-plugin-logger >= %{libreport_ver}
 Requires:	libreport-plugin-ureport >= %{libreport_ver}
@@ -406,6 +376,7 @@ się do powłoki.
 %prep
 %setup -q
 %{?with_rpm5:%patch0 -p1}
+%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 
@@ -423,7 +394,7 @@ echo -n %{version} > abrt-version
 %{__automake}
 %configure \
 	AUGPARSE=/usr/bin/augparse \
-	PYTHON_NOSE=/usr/bin/nosetests-%{py3_ver} \
+	FINDMNT=/bin/findmnt \
 	--enable-dump-time-unwind \
 	--enable-native-unwinder \
 	--disable-silent-rules \
@@ -557,6 +528,7 @@ fi
 %attr(755,root,root) %{_sbindir}/abrt-auto-reporting
 %attr(755,root,root) %{_sbindir}/abrt-server
 %attr(755,root,root) %{_sbindir}/abrtd
+%attr(755,root,root) %{_libexecdir}/abrt-action-coredump
 %attr(755,root,root) %{_libexecdir}/abrt-action-generate-machine-id
 %attr(755,root,root) %{_libexecdir}/abrt-action-save-container-data
 %attr(755,root,root) %{_libexecdir}/abrt-action-ureport
@@ -572,7 +544,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/abrt_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/machine-id_event.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/smart_event.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/sosreport_event.conf
 %attr(754,root,root) /etc/rc.d/init.d/abrtd
 %{systemdunitdir}/abrtd.service
 %attr(775,root,abrt) %dir /var/cache/%{name}
@@ -594,10 +565,6 @@ fi
 %{_mandir}/man5/smart_event.conf.5*
 %{_mandir}/man8/abrtd.8*
 
-%files -n bash-completion-abrt
-%defattr(644,root,root,755)
-/etc/bash_completion.d/abrt.bash_completion
-
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libabrt.so.*.*.*
@@ -618,16 +585,12 @@ fi
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-backtrace
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-c
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-ccpp-local
-%attr(755,root,root) %{_bindir}/abrt-action-analyze-core
 %attr(755,root,root) %{_bindir}/abrt-action-analyze-vulnerability
 %attr(755,root,root) %{_bindir}/abrt-action-generate-backtrace
 %attr(755,root,root) %{_bindir}/abrt-action-generate-core-backtrace
-%attr(755,root,root) %{_bindir}/abrt-action-install-debuginfo
 %attr(755,root,root) %{_bindir}/abrt-action-list-dsos
-%attr(755,root,root) %{_bindir}/abrt-action-perform-ccpp-analysis
 %attr(755,root,root) %{_bindir}/abrt-action-trim-files
 %attr(755,root,root) %{_bindir}/abrt-dump-journal-core
-%attr(6755,abrt,abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
 %attr(755,root,root) %{_libexecdir}/abrt-gdb-exploitable
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/plugins/CCpp.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_event.conf
@@ -648,18 +611,14 @@ fi
 %{_mandir}/man1/abrt-action-analyze-backtrace.1*
 %{_mandir}/man1/abrt-action-analyze-c.1*
 %{_mandir}/man1/abrt-action-analyze-ccpp-local.1*
-%{_mandir}/man1/abrt-action-analyze-core.1*
 %{_mandir}/man1/abrt-action-analyze-vulnerability.1*
 %{_mandir}/man1/abrt-action-generate-backtrace.1*
 %{_mandir}/man1/abrt-action-generate-core-backtrace.1*
-%{_mandir}/man1/abrt-action-install-debuginfo.1*
 %{_mandir}/man1/abrt-action-list-dsos.1*
-%{_mandir}/man1/abrt-action-perform-ccpp-analysis.1*
 %{_mandir}/man1/abrt-action-trim-files.1*
 %{_mandir}/man1/abrt-dump-journal-core.1*
 %{_mandir}/man5/abrt-CCpp.conf.5*
 %{_mandir}/man5/ccpp_event.conf.5*
-%{_mandir}/man5/ccpp_retrace_event.conf.5*
 %{_mandir}/man5/gconf_event.conf.5*
 %{_mandir}/man5/vimrc_event.conf.5*
 
@@ -753,13 +712,6 @@ fi
 %{_datadir}/libreport/events/analyze_BodhiUpdates.xml
 %{_mandir}/man1/abrt-action-find-bodhi-update.1*
 %{_mandir}/man1/abrt-bodhi.1*
-
-%files retrace-client
-%defattr(644,root,root,755)
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/libreport/events.d/ccpp_retrace_event.conf
-%attr(755,root,root) %{_bindir}/abrt-retrace-client
-%{_datadir}/libreport/events/analyze_RetraceServer.xml
-%{_mandir}/man1/abrt-retrace-client.1*
 
 %files dbus
 %defattr(644,root,root,755)
