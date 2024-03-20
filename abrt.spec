@@ -11,7 +11,7 @@ Summary:	Automatic bug detection and reporting tool
 Summary(pl.UTF-8):	Narzędzie do automatycznego wykrywania i zgłaszania błędów
 Name:		abrt
 Version:	2.17.5
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 #Source0Download: https://github.com/abrt/abrt/releases
