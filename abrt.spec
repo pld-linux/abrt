@@ -376,9 +376,9 @@ się do powłoki.
 %prep
 %setup -q
 %{?with_rpm5:%patch0 -p1}
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
+%patch -P 1 -p1
+%patch -P 2 -p1
+%patch -P 3 -p1
 
 %{__sed} -n -e '/^%%changelog/,$p' abrt.spec.in | tail -n +2 > changelog
 
